@@ -1,0 +1,22 @@
+{
+  "student_id": "2024000000",
+  "password": "YOUR_PASSWORD",
+  "device": "PC",
+  "target_courses": [
+    {
+      "code": "30034",
+      "div": "01",
+      "name": "알고리듬"
+    },
+    {
+      "code": "30033",
+      "div": "01",
+      "name": "컴퓨터네트워크"
+    }
+  ],
+  "check_interval_seconds": 6,
+  "discord": {
+    "enabled": true,
+    "webhook_url": "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
+  }
+}

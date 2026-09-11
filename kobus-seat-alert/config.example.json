@@ -1,0 +1,22 @@
+{
+  "departure_terminal": "010",
+  "arrival_terminal": "700",
+  "departure_name": "서울경부",
+  "arrival_name": "부산",
+  "date": "20260923",
+  "min_time": "14:00",
+  "max_time": "23:59",
+  "check_interval_seconds": 6,
+  "sound_alert": true,
+  "popup_alert": true,
+  "auto_open_browser": true,
+  "telegram": {
+    "enabled": false,
+    "bot_token": "YOUR_TELEGRAM_BOT_TOKEN",
+    "chat_id": "YOUR_TELEGRAM_CHAT_ID"
+  },
+  "discord": {
+    "enabled": true,
+    "webhook_url": "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
+  }
+}
