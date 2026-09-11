@@ -900,6 +900,7 @@
           <div class="card-header">
             <div class="card-title">
               <span>📢 시립대 학사 / 장학 / 해외파견 공지사항 모아보기</span>
+              <span id="noticeCountBadge" class="badge badge-secondary" style="margin-left: 8px;"></span>
             </div>
             <div style="display: flex; gap: 8px;">
               <button class="btn btn-primary" onclick="loadNotices(true)">
@@ -911,14 +912,51 @@
             </div>
           </div>
 
+          <!-- 기간 설정 바 & 빠른 프리셋 -->
+          <div class="form-label" style="margin-bottom: 6px;">📅 조회 기간 설정</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px;">
+            <div class="region-filter-bar" id="noticePeriodPresetBar" style="margin-bottom: 0; padding: 4px 8px;">
+              <button class="region-chip active" onclick="setNoticePeriodPreset('all')">전체 기간</button>
+              <button class="region-chip" onclick="setNoticePeriodPreset('1w')">최근 1주</button>
+              <button class="region-chip" onclick="setNoticePeriodPreset('1m')">최근 1개월</button>
+              <button class="region-chip" onclick="setNoticePeriodPreset('3m')">최근 3개월</button>
+              <button class="region-chip" onclick="setNoticePeriodPreset('6m')">최근 6개월</button>
+              <button class="region-chip" onclick="setNoticePeriodPreset('this_year')">2026년</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <input type="date" id="noticeStartDate" onchange="onNoticeCustomDateChange()" style="padding: 6px 10px; font-size: 12px;">
+              <span>~</span>
+              <input type="date" id="noticeEndDate" onchange="onNoticeCustomDateChange()" style="padding: 6px 10px; font-size: 12px;">
+              <button class="btn btn-secondary" onclick="resetNoticeDates()" style="padding: 6px 10px; font-size: 12px;">초기화</button>
+            </div>
+          </div>
+
+          <!-- 분류 필터 -->
+          <div class="form-label" style="margin-bottom: 6px;">📂 공지 분류 선택</div>
+          <div class="region-filter-bar" id="noticeCategoryBar" style="margin-bottom: 14px; padding: 4px 8px;">
+            <button class="region-chip active" onclick="filterNoticeCategory('전체')">전체</button>
+            <button class="region-chip" onclick="filterNoticeCategory('학사공지')">학사공지</button>
+            <button class="region-chip" onclick="filterNoticeCategory('장학공지')">장학공지</button>
+            <button class="region-chip" onclick="filterNoticeCategory('일반공지')">일반공지</button>
+            <button class="region-chip" onclick="filterNoticeCategory('뉴스속UOS')">뉴스속UOS</button>
+          </div>
+
           <!-- Recommended Search Tags -->
-          <div class="form-label">📌 추천 검색어 원클릭 필터</div>
-          <div class="tag-container" id="recommendedTagsContainer">
+          <div class="form-label" style="margin-bottom: 6px;">📌 추천 검색어 태그 필터</div>
+          <div class="tag-container" id="recommendedTagsContainer" style="margin-bottom: 14px;">
             <!-- Dynamically filled with tags like #장학금, #해외파견 -->
           </div>
 
-          <div class="form-group" style="margin-bottom: 16px;">
-            <input type="text" id="noticeSearchInput" placeholder="공지사항 제목 실시간 검색 (예: 장학금, 계절학기, 교환학생)" oninput="filterNotices()">
+          <div class="grid-form" style="margin-bottom: 16px;">
+            <div class="form-group" style="grid-column: span 3;">
+              <input type="text" id="noticeSearchInput" placeholder="공지사항 제목 실시간 검색 (예: 장학금, 계절학기, 교환학생, 해외파견)" oninput="filterNotices()">
+            </div>
+            <div class="form-group">
+              <select id="noticeSortSelect" onchange="filterNotices()">
+                <option value="desc" selected>최신순 정렬</option>
+                <option value="asc">과거순 정렬</option>
+              </select>
+            </div>
           </div>
 
           <!-- Notices Table -->
@@ -926,11 +964,11 @@
             <table>
               <thead>
                 <tr>
-                  <th style="width: 100px;">분류</th>
+                  <th style="width: 110px;">분류</th>
                   <th>공지사항 제목</th>
                   <th>태그</th>
-                  <th style="width: 140px;">게시일시</th>
-                  <th style="width: 90px;">원문 링크</th>
+                  <th style="width: 150px;">게시일시</th>
+                  <th style="width: 90px; text-align: center;">원문 링크</th>
                 </tr>
               </thead>
               <tbody id="noticesTbody">
@@ -1728,29 +1766,142 @@
       }
     }
 
-    function selectNoticeTag(tag) {
-      document.querySelectorAll('#recommendedTagsContainer .tag-item').forEach(el => {
-        el.classList.toggle('active', el.innerText === tag);
+    let curNoticeCategory = '전체';
+    let curNoticeTag = '';
+
+    function setNoticePeriodPreset(preset) {
+      document.querySelectorAll('#noticePeriodPresetBar .region-chip').forEach(c => {
+        c.classList.remove('active');
       });
-      const tagWord = tag.replace('#', '');
-      document.getElementById('noticeSearchInput').value = tagWord;
+      if (window.event && window.event.target) {
+        window.event.target.classList.add('active');
+      }
+
+      const now = new Date();
+      const endStr = now.toISOString().slice(0, 10);
+      let startStr = '';
+
+      if (preset === '1w') {
+        const d = new Date(now.getTime() - 7 * 86400000);
+        startStr = d.toISOString().slice(0, 10);
+      } else if (preset === '1m') {
+        const d = new Date(now.getTime() - 30 * 86400000);
+        startStr = d.toISOString().slice(0, 10);
+      } else if (preset === '3m') {
+        const d = new Date(now.getTime() - 90 * 86400000);
+        startStr = d.toISOString().slice(0, 10);
+      } else if (preset === '6m') {
+        const d = new Date(now.getTime() - 180 * 86400000);
+        startStr = d.toISOString().slice(0, 10);
+      } else if (preset === 'this_year') {
+        startStr = `${now.getFullYear()}-01-01`;
+      } else {
+        // all
+        startStr = '';
+      }
+
+      document.getElementById('noticeStartDate').value = startStr;
+      document.getElementById('noticeEndDate').value = startStr ? endStr : '';
+      filterNotices();
+    }
+
+    function onNoticeCustomDateChange() {
+      document.querySelectorAll('#noticePeriodPresetBar .region-chip').forEach(c => {
+        c.classList.remove('active');
+      });
+      filterNotices();
+    }
+
+    function resetNoticeDates() {
+      document.getElementById('noticeStartDate').value = '';
+      document.getElementById('noticeEndDate').value = '';
+      document.querySelectorAll('#noticePeriodPresetBar .region-chip').forEach(c => {
+        c.classList.toggle('active', c.innerText.includes('전체'));
+      });
+      filterNotices();
+    }
+
+    function filterNoticeCategory(cat) {
+      curNoticeCategory = cat;
+      document.querySelectorAll('#noticeCategoryBar .region-chip').forEach(c => {
+        c.classList.toggle('active', c.innerText.trim() === cat);
+      });
+      filterNotices();
+    }
+
+    function selectNoticeTag(tag) {
+      if (curNoticeTag === tag) {
+        curNoticeTag = '';
+      } else {
+        curNoticeTag = tag;
+      }
+      document.querySelectorAll('#recommendedTagsContainer .tag-item').forEach(el => {
+        el.classList.toggle('active', el.innerText === curNoticeTag);
+      });
       filterNotices();
     }
 
     function filterNotices() {
-      const query = document.getElementById('noticeSearchInput').value.toLowerCase().trim();
+      const query = document.getElementById('noticeSearchInput')?.value?.toLowerCase()?.trim() || '';
+      const startVal = document.getElementById('noticeStartDate')?.value || '';
+      const endVal = document.getElementById('noticeEndDate')?.value || '';
+      const sortOrder = document.getElementById('noticeSortSelect')?.value || 'desc';
       const tbody = document.getElementById('noticesTbody');
+      if (!tbody) return;
 
-      const filtered = globalCampusData.notices.filter(n => {
-        if (!query) return true;
-        const inTitle = n.title?.toLowerCase().includes(query);
-        const inTags = n.tags?.some(t => t.toLowerCase().includes(query));
-        const inCat = n.category?.toLowerCase().includes(query);
-        return inTitle || inTags || inCat;
+      const startDate = startVal ? new Date(startVal + 'T00:00:00') : null;
+      const endDate = endVal ? new Date(endVal + 'T23:59:59') : null;
+
+      let list = (globalCampusData.notices || []).slice();
+
+      // Sort
+      list.sort((a, b) => {
+        const dA = new Date((a.date || '').replace(/-/g, '/'));
+        const dB = new Date((b.date || '').replace(/-/g, '/'));
+        const timeA = isNaN(dA.getTime()) ? 0 : dA.getTime();
+        const timeB = isNaN(dB.getTime()) ? 0 : dB.getTime();
+        return sortOrder === 'asc' ? (timeA - timeB) : (timeB - timeA);
       });
 
+      const filtered = list.filter(n => {
+        // 1. Category filter
+        if (curNoticeCategory !== '전체' && n.category !== curNoticeCategory) {
+          return false;
+        }
+
+        // 2. Tag filter
+        if (curNoticeTag && (!n.tags || !n.tags.includes(curNoticeTag))) {
+          return false;
+        }
+
+        // 3. Date Range filter
+        if (startDate || endDate) {
+          const nDate = new Date((n.date || '').replace(/-/g, '/'));
+          if (!isNaN(nDate.getTime())) {
+            if (startDate && nDate < startDate) return false;
+            if (endDate && nDate > endDate) return false;
+          }
+        }
+
+        // 4. Text Query search
+        if (query) {
+          const inTitle = n.title?.toLowerCase().includes(query);
+          const inTags = n.tags?.some(t => t.toLowerCase().includes(query));
+          const inCat = n.category?.toLowerCase().includes(query);
+          if (!inTitle && !inTags && !inCat) return false;
+        }
+
+        return true;
+      });
+
+      // Update badge count
+      const badge = document.getElementById('noticeCountBadge');
+      if (badge) {
+        badge.innerText = `총 ${globalCampusData.notices.length}건 중 ${filtered.length}건`;
+      }
+
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-dim); padding: 30px;">검색 조건에 맞는 공지사항이 없습니다.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-dim); padding: 40px 0;">지정한 기간 및 검색 조건에 맞는 공지사항이 없습니다.</td></tr>';
         return;
       }
 
@@ -1760,7 +1911,7 @@
           <td style="font-weight: 600;">${n.title}</td>
           <td>${(n.tags || []).map(t => `<span class="badge badge-special" style="margin-right: 2px;">${t}</span>`).join('')}</td>
           <td style="color: var(--text-dim); font-size: 12px;">${n.date}</td>
-          <td><a href="${n.link}" target="_blank" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;">원문보기</a></td>
+          <td style="text-align: center;"><a href="${n.link}" target="_blank" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;">원문보기</a></td>
         </tr>
       `).join('');
     }
