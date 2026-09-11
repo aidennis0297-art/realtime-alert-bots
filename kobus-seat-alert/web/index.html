@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KOBUS 고속버스 빈자리 알리미 대시보드</title>
+  <style>
+    :root {
+      --bg-main: #0b132b;
+      --bg-card: #1c2541;
+      --bg-card-hover: #233156;
+      --bg-input: #0b132b;
+      --border-color: #3a506b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --emerald: #10b981;
+      --emerald-dark: #065f46;
+      --rose: #f43f5e;
+      --amber: #f59e0b;
+      --indigo: #6366f1;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+
+    header {
+      background: rgba(28, 37, 65, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky; top: 0; z-index: 100;
+      padding: 12px 24px;
+      display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .logo-badge { font-size: 26px; }
+    .brand-title { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+    .brand-sub { font-size: 12px; color: var(--text-muted); }
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600;
+    }
+    .status-online { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .status-offline { background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3); }
+    .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+
+    .header-right { display: flex; align-items: center; gap: 10px; }
+
+    select, input[type="text"], input[type="date"], input[type="time"], input[type="number"] {
+      background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-main);
+      padding: 8px 12px; border-radius: 8px; font-size: 13px; outline: none; transition: border-color 0.2s;
+    }
+    select:focus, input:focus { border-color: var(--primary); }
+
+    button {
+      cursor: pointer; border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
+      padding: 8px 14px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;
+    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+    .btn-success { background: var(--emerald); color: white; }
+    .btn-success:hover:not(:disabled) { background: #059669; }
+    .btn-danger { background: var(--rose); color: white; }
+    .btn-danger:hover:not(:disabled) { background: #e11d48; }
+    .btn-secondary { background: #3a506b; color: var(--text-main); }
+    .btn-secondary:hover:not(:disabled) { background: #4f6d91; }
+
+    .container { max-width: 1400px; margin: 0 auto; padding: 20px; width: 100%; display: flex; flex-direction: column; gap: 20px; flex: 1; }
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .card-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .card-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+
+    /* Controls Grid */
+    .controls-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; background: #131b2e; padding: 16px; border-radius: 10px; align-items: end;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 12px; font-weight: 600; color: #cbd5e1; }
+
+    /* Options Bar */
+    .options-bar {
+      display: flex; gap: 20px; flex-wrap: wrap; background: #151e33; padding: 12px 16px; border-radius: 8px; font-size: 13px;
+    }
+    .option-item { display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+    .option-item input[type="checkbox"] { cursor: pointer; accent-color: var(--primary); width: 16px; height: 16px; }
+
+    /* Timetable Table */
+    .table-container { overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+    th { background: #131b2e; color: #cbd5e1; font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+    td { padding: 10px 12px; border-bottom: 1px solid rgba(58, 80, 107, 0.6); color: #e2e8f0; vertical-align: middle; }
+    tr:hover td { background: var(--bg-card-hover); }
+
+    .grade-badge { font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
+    .grade-premium { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .grade-honor { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+    .grade-normal { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.4); }
+
+    .vacant-badge {
+      display: inline-block; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 6px; text-align: center;
+    }
+    .vacant-open {
+      background: #10b981; color: white; animation: alert-glow 1s infinite alternate;
+    }
+    @keyframes alert-glow { from { opacity: 0.85; } to { opacity: 1; box-shadow: 0 0 10px #10b981; } }
+    .vacant-soldout { background: #2a384c; color: #94a3b8; }
+
+    /* Console */
+    .console-box {
+      background: #080d1a; border: 1px solid #233156; border-radius: 8px; padding: 12px;
+      height: 150px; overflow-y: auto; font-family: "Cascadia Code", Consolas, "Courier New", monospace;
+      font-size: 12px; color: #a5f3fc; line-height: 1.6;
+    }
+    .console-line { word-break: break-all; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);
+      display: none; justify-content: center; align-items: center; z-index: 200; padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-content {
+      background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px;
+      width: 100%; max-width: 500px; padding: 24px; display: flex; flex-direction: column; gap: 18px;
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; }
+    .modal-title { font-size: 17px; font-weight: 700; }
+    .close-btn { background: transparent; color: var(--text-muted); font-size: 20px; padding: 4px 8px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <span class="logo-badge">🚌</span>
+      <div>
+        <div class="brand-title">KOBUS 고속버스 빈자리 알리미</div>
+        <div class="brand-sub">kobus.co.kr 실시간 취소표 감지 & 디스코드 3연타 알림</div>
+      </div>
+      <div id="connectionStatus" class="status-badge status-online">
+        <div class="pulse-dot"></div>
+        <span>온라인</span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <button id="toggleMonitorBtn" class="btn-success" onclick="toggleMonitor()">
+        <span>▶️ 빈자리 감시 시작</span>
+      </button>
+      <button class="btn-secondary" onclick="openModal()">
+        <span>⚙️ 알림 설정</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- Route & Schedule Selector Card -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>📍 노선 및 일정 선택</span>
+          <span id="routeBanner" style="font-size: 13px; font-weight: normal; color: var(--text-muted);">서울경부 ➔ 부산</span>
+        </div>
+        <button class="btn-primary" id="searchScheduleBtn" onclick="fetchSchedule()">
+          <span>🔄 실시간 배차 조회</span>
+        </button>
+      </div>
+
+      <div class="controls-grid">
+        <div class="form-group">
+          <label class="form-label">출발지 터미널</label>
+          <select id="deprSelect" onchange="onDepartureChanged()">
+            <option value="010" selected>서울경부</option>
+            <option value="010">서울경부</option>
+            <option value="032">동서울</option>
+            <option value="500">광주(유·스퀘어)</option>
+            <option value="700">부산</option>
+            <option value="300">대전복합</option>
+            <option value="602">전주</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">도착지 터미널</label>
+          <select id="arvlSelect" onchange="onArrivalChanged()">
+            <option value="700" selected>부산</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">출발 날짜</label>
+          <input type="date" id="dateInput" value="2026-09-23">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">희망 시간대 (시작)</label>
+          <input type="time" id="minTimeInput" value="14:00">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">희망 시간대 (종료)</label>
+          <input type="time" id="maxTimeInput" value="23:59">
+        </div>
+      </div>
+
+      <!-- Alert Options Bar -->
+      <div class="options-bar">
+        <label class="option-item">
+          <input type="checkbox" id="optSound" checked onchange="saveOptions()">
+          <span>🔊 PC 스피커 경보음</span>
+        </label>
+        <label class="option-item">
+          <input type="checkbox" id="optPopup" checked onchange="saveOptions()">
+          <span>🖥️ Windows 화면 팝업</span>
+        </label>
+        <label class="option-item">
+          <input type="checkbox" id="optBrowser" checked onchange="saveOptions()">
+          <span>🌐 빈자리 발생 시 예매창 자동 열기</span>
+        </label>
+        <label class="option-item">
+          <input type="checkbox" id="optDiscord" checked onchange="saveOptions()">
+          <span>📱 디스코드 3연타 모바일 푸시</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Timetable Section -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>🕒 실시간 배차 현황</span>
+          <span id="busCountBadge" style="font-size: 12px; background: #3a506b; padding: 2px 8px; border-radius: 4px;">0개 배차</span>
+        </div>
+        <div id="vacantAlertBanner" style="font-size: 13px; color: var(--emerald); font-weight: 700;"></div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 100px;">출발시각</th>
+              <th style="width: 160px;">운행회사</th>
+              <th style="width: 130px;">버스 등급</th>
+              <th style="width: 140px; text-align: center;">잔여석 / 총 좌석</th>
+              <th style="width: 140px; text-align: center;">예매 가능 여부</th>
+              <th style="text-align: right;">원클릭 예매</th>
+            </tr>
+          </thead>
+          <tbody id="timetableBody">
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 36px; color: var(--text-muted);">
+                상단의 <strong>[🔄 실시간 배차 조회]</strong> 버튼을 누르면 배차 목록이 표시됩니다.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Console Section -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>📟 실시간 감시 로그 (Console)</span>
+        </div>
+        <button class="btn-secondary" style="font-size: 11px; padding: 4px 8px;" onclick="clearConsole()">
+          로그 비우기
+        </button>
+      </div>
+      <div id="consoleBox" class="console-box">
+        <div class="console-line">[시스템 준비 완료] 출발지와 목적지, 일시를 선택한 후 감시를 시작할 수 있습니다.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">⚙️ KOBUS 알림 설정</div>
+        <button class="close-btn" onclick="closeModal()">✕</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">디스코드 웹훅 URL (모바일 3연타 진동 푸시용)</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="cfgWebhook" placeholder="https://discord.com/api/webhooks/..." style="flex: 1;">
+          <button class="btn-secondary" type="button" onclick="testDiscord()">🔔 테스트 발송</button>
+        </div>
+        <span id="discordStatusMsg" style="font-size: 12px;"></span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">점검 주기 (초 단위, 권장: 5~7초)</label>
+        <input type="number" id="cfgInterval" min="3" max="60" value="6">
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
+        <button class="btn-secondary" onclick="closeModal()">취소</button>
+        <button class="btn-primary" onclick="saveSettings()">저장하기</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let terminalData = { departures: [], routes: {} };
+    let isMonitoring = false;
+    let currentBuses = [];
+
+    async function init() {
+      await loadTerminals();
+      await loadConfig();
+      await fetchSchedule();
+      pollStatus();
+      setInterval(pollStatus, 2500);
+    }
+
+    async function loadTerminals() {
+      try {
+        const res = await fetch('/api/terminals');
+        const data = await res.json();
+        terminalData = data;
+        populateDepartures();
+      } catch (e) {
+        logToConsole(`[터미널 로드 실패] ${e}`);
+      }
+    }
+
+    function populateDepartures() {
+      const sel = document.getElementById('deprSelect');
+      const curVal = sel.value;
+      if (!terminalData.departures || terminalData.departures.length === 0) return;
+
+      sel.innerHTML = '';
+      terminalData.departures.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.code;
+        opt.innerText = d.name;
+        if (d.code === curVal) opt.selected = true;
+        sel.appendChild(opt);
+      });
+
+      populateArrivals();
+    }
+
+    function populateArrivals() {
+      const deprCd = document.getElementById('deprSelect').value;
+      const arvlSel = document.getElementById('arvlSelect');
+      const curArvl = arvlSel.value;
+      const arrivals = (terminalData.routes && terminalData.routes[deprCd]) || [];
+
+      arvlSel.innerHTML = '';
+      arrivals.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.arvlCd;
+        opt.innerText = a.arvlNm;
+        if (a.arvlCd === curArvl) opt.selected = true;
+        arvlSel.appendChild(opt);
+      });
+
+      updateRouteBanner();
+    }
+
+    function onDepartureChanged() {
+      populateArrivals();
+      saveCurrentParams();
+      fetchSchedule();
+    }
+
+    function onArrivalChanged() {
+      updateRouteBanner();
+      saveCurrentParams();
+      fetchSchedule();
+    }
+
+    function updateRouteBanner() {
+      const d = document.getElementById('deprSelect');
+      const a = document.getElementById('arvlSelect');
+      const dName = d.options[d.selectedIndex] ? d.options[d.selectedIndex].text : '';
+      const aName = a.options[a.selectedIndex] ? a.options[a.selectedIndex].text : '';
+      document.getElementById('routeBanner').innerText = `${dName} ➔ ${aName}`;
+    }
+
+    async function loadConfig() {
+      try {
+        const res = await fetch('/api/config');
+        const cfg = await res.json();
+        if (cfg.departure_terminal) document.getElementById('deprSelect').value = cfg.departure_terminal;
+        populateArrivals();
+        if (cfg.arrival_terminal) document.getElementById('arvlSelect').value = cfg.arrival_terminal;
+        
+        if (cfg.date) {
+          const d = cfg.date;
+          if (d.length === 8) {
+            document.getElementById('dateInput').value = `${d.substring(0,4)}-${d.substring(4,6)}-${d.substring(6,8)}`;
+          }
+        }
+        if (cfg.min_time) document.getElementById('minTimeInput').value = cfg.min_time;
+        if (cfg.max_time) document.getElementById('maxTimeInput').value = cfg.max_time;
+
+        document.getElementById('optSound').checked = cfg.sound_alert !== false;
+        document.getElementById('optPopup').checked = cfg.popup_alert !== false;
+        document.getElementById('optBrowser').checked = cfg.auto_open_browser !== false;
+        document.getElementById('optDiscord').checked = (cfg.discord && cfg.discord.enabled) !== false;
+        document.getElementById('cfgWebhook').value = (cfg.discord && cfg.discord.webhook_url) || '';
+        document.getElementById('cfgInterval').value = cfg.check_interval_seconds || 6;
+
+        updateRouteBanner();
+      } catch (e) {
+        logToConsole(`[설정 로드 실패] ${e}`);
+      }
+    }
+
+    async function saveCurrentParams() {
+      const d = document.getElementById('deprSelect');
+      const a = document.getElementById('arvlSelect');
+      const payload = {
+        departure_terminal: d.value,
+        departure_name: d.options[d.selectedIndex] ? d.options[d.selectedIndex].text : '',
+        arrival_terminal: a.value,
+        arrival_name: a.options[a.selectedIndex] ? a.options[a.selectedIndex].text : '',
+        date: document.getElementById('dateInput').value.replace(/-/g, ''),
+        min_time: document.getElementById('minTimeInput').value,
+        max_time: document.getElementById('maxTimeInput').value,
+        sound_alert: document.getElementById('optSound').checked,
+        popup_alert: document.getElementById('optPopup').checked,
+        auto_open_browser: document.getElementById('optBrowser').checked,
+        discord: {
+          enabled: document.getElementById('optDiscord').checked,
+          webhook_url: document.getElementById('cfgWebhook').value.trim()
+        },
+        check_interval_seconds: parseInt(document.getElementById('cfgInterval').value, 10) || 6
+      };
+
+      try {
+        await fetch('/api/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch (e) {}
+    }
+
+    function saveOptions() {
+      saveCurrentParams();
+    }
+
+    async function saveSettings() {
+      await saveCurrentParams();
+      alert('설정이 성공적으로 저장되었습니다.');
+      closeModal();
+    }
+
+    async function fetchSchedule() {
+      const deprCd = document.getElementById('deprSelect').value;
+      const arvlCd = document.getElementById('arvlSelect').value;
+      const date = document.getElementById('dateInput').value.replace(/-/g, '');
+      const minTime = document.getElementById('minTimeInput').value;
+      const maxTime = document.getElementById('maxTimeInput').value;
+
+      const btn = document.getElementById('searchScheduleBtn');
+      btn.disabled = true;
+      btn.innerText = '⏳ 조회 중...';
+      logToConsole(`[배차 조회 요청] ${date} ${minTime}~${maxTime}`);
+
+      try {
+        const url = `/api/schedule?deprCd=${deprCd}&arvlCd=${arvlCd}&date=${date}&minTime=${encodeURIComponent(minTime)}&maxTime=${encodeURIComponent(maxTime)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        currentBuses = data.buses || [];
+        renderTimetable(currentBuses);
+        logToConsole(`[배차 조회 완료] 총 ${currentBuses.length}개 배차 확인됨`);
+      } catch (e) {
+        logToConsole(`[배차 조회 오류] ${e}`);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '🔄 실시간 배차 조회';
+      }
+    }
+
+    function renderTimetable(buses) {
+      const tbody = document.getElementById('timetableBody');
+      document.getElementById('busCountBadge').innerText = `총 ${buses.length}개 배차`;
+      const vacantCount = buses.filter(b => b.is_vacant).length;
+
+      const alertBanner = document.getElementById('vacantAlertBanner');
+      if (vacantCount > 0) {
+        alertBanner.innerText = `🚨 취소표 ${vacantCount}건 발생! 지금 즉시 예매 가능!`;
+      } else {
+        alertBanner.innerText = `현재 전 배차 매진 상태`;
+      }
+
+      if (buses.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: var(--text-muted);">해당 조건의 운행 배차가 없습니다.</td></tr>';
+        return;
+      }
+
+      let html = '';
+      buses.forEach(b => {
+        let gradeBadgeClass = 'grade-normal';
+        if (b.bus_grade.includes('프리미엄')) gradeBadgeClass = 'grade-premium';
+        else if (b.bus_grade.includes('우등')) gradeBadgeClass = 'grade-honor';
+
+        const statusBadge = b.is_vacant
+          ? `<span class="vacant-badge vacant-open">🎉 ${b.rem_seats}석 예약가능</span>`
+          : `<span class="vacant-badge vacant-soldout">매진</span>`;
+
+        html += `
+          <tr>
+            <td><strong style="font-size: 15px; color: #fff;">${b.depr_time}</strong></td>
+            <td>${b.company}</td>
+            <td><span class="grade-badge ${gradeBadgeClass}">${b.bus_grade}</span></td>
+            <td style="text-align: center; font-weight: 600;">${b.rem_seats} / ${b.tot_seats}</td>
+            <td style="text-align: center;">${statusBadge}</td>
+            <td style="text-align: right;">
+              <a href="https://www.kobus.co.kr/mrs/rotinf.do" target="_blank" class="btn-secondary" style="display: inline-flex; text-decoration: none; padding: 4px 10px; font-size: 12px;">
+                예매창 이동 ➔
+              </a>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    async function toggleMonitor() {
+      const btn = document.getElementById('toggleMonitorBtn');
+      btn.disabled = true;
+
+      await saveCurrentParams();
+
+      try {
+        const endpoint = isMonitoring ? '/api/monitor/stop' : '/api/monitor/start';
+        const res = await fetch(endpoint, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          isMonitoring = !isMonitoring;
+          updateMonitorUI();
+        } else {
+          alert('오류: ' + data.message);
+        }
+      } catch (e) {
+        alert('통신 오류: ' + e);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function updateMonitorUI() {
+      const btn = document.getElementById('toggleMonitorBtn');
+      if (isMonitoring) {
+        btn.className = 'btn-danger';
+        btn.innerHTML = '<span>⏹️ 빈자리 감시 중지</span>';
+      } else {
+        btn.className = 'btn-success';
+        btn.innerHTML = '<span>▶️ 빈자리 감시 시작</span>';
+      }
+    }
+
+    async function pollStatus() {
+      try {
+        const res = await fetch('/api/monitor/status');
+        const data = await res.json();
+        isMonitoring = data.running;
+        updateMonitorUI();
+
+        if (data.recent_logs && data.recent_logs.length > 0) {
+          const box = document.getElementById('consoleBox');
+          box.innerHTML = data.recent_logs.map(l => `<div class="console-line">${escapeHtml(l)}</div>`).join('');
+          box.scrollTop = box.scrollHeight;
+        }
+
+        if (data.running && data.vacant_buses && data.vacant_buses.length > 0) {
+          document.getElementById('vacantAlertBanner').innerText = `🚨 취소표 ${data.vacant_buses.length}건 발생 감지 중!`;
+        }
+      } catch (e) {
+        const st = document.getElementById('connectionStatus');
+        st.className = 'status-badge status-offline';
+        st.innerHTML = '<div class="pulse-dot"></div><span>서버 끊김</span>';
+      }
+    }
+
+    async function testDiscord() {
+      const msg = document.getElementById('discordStatusMsg');
+      msg.style.color = '#94a3b8';
+      msg.innerText = '디스코드 테스트 알림 발송 중...';
+      try {
+        const res = await fetch('/api/discord/test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ webhook_url: document.getElementById('cfgWebhook').value.trim() })
+        });
+        const data = await res.json();
+        if (data.success) {
+          msg.style.color = '#34d399';
+          msg.innerText = '✅ 전송 성공! 스마트폰 디스코드 앱을 확인하세요.';
+        } else {
+          msg.style.color = '#fb7185';
+          msg.innerText = '❌ ' + data.message;
+        }
+      } catch (e) {
+        msg.style.color = '#fb7185';
+        msg.innerText = '오류: ' + e;
+      }
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function logToConsole(msg) {
+      const box = document.getElementById('consoleBox');
+      const time = new Date().toLocaleTimeString('ko-KR', { hour12: false });
+      const line = document.createElement('div');
+      line.className = 'console-line';
+      line.innerText = `[${time}] ${msg}`;
+      box.appendChild(line);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function clearConsole() {
+      document.getElementById('consoleBox').innerHTML = '<div class="console-line">[로그 초기화됨]</div>';
+    }
+
+    function openModal() {
+      document.getElementById('settingsModal').classList.add('active');
+    }
+    function closeModal() {
+      document.getElementById('settingsModal').classList.remove('active');
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

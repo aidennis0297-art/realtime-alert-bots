@@ -120,7 +120,7 @@ def check_seats(opener, depr_cd="010", arvl_cd="700", date="20260923", min_time=
 if __name__ == "__main__":
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] KOBUS 서울경부 -> 부산 배차 조회 중...")
     session = get_session()
-    buses = check_seats(session, "021", "393", "20260923", "18:00")
+    buses = check_seats(session, "010", "700", "20260923", "18:00")
     print(f"조회 완료: 18:00 이후 총 {len(buses)}개 배차 확인")
     print("-" * 55)
     print(f"{'출발시간':<8} | {'운행회사':<12} | {'등급':<10} | {'잔여석':<6} | {'상태'}")
