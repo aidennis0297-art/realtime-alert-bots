@@ -489,16 +489,32 @@
           </div>
         </div>
 
-        <!-- 광역시도별 출발 권역 필터 -->
-        <div class="form-label" style="margin-bottom: 6px;">출발지 권역 선택 (광역시도별)</div>
-        <div class="region-filter-bar" id="kobusDepRegionBar">
-          <button class="region-chip active" onclick="kobusFilterDepRegion('전체')">전체 (224)</button>
-          <button class="region-chip" onclick="kobusFilterDepRegion('서울')">서울</button>
-          <button class="region-chip" onclick="kobusFilterDepRegion('경기/인천')">경기/인천</button>
-          <button class="region-chip" onclick="kobusFilterDepRegion('강원')">강원</button>
-          <button class="region-chip" onclick="kobusFilterDepRegion('대전/충청/세종')">대전/충청/세종</button>
-          <button class="region-chip" onclick="kobusFilterDepRegion('광주/전라')">광주/전라</button>
-          <button class="region-chip" onclick="kobusFilterDepRegion('부산/대구/경상')">부산/대구/경상</button>
+        <!-- 광역시도별 출발 & 도착 권역 필터 -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px;">
+          <div>
+            <div class="form-label" style="margin-bottom: 6px;">출발지 권역 선택 (출발터미널 필터)</div>
+            <div class="region-filter-bar" id="kobusDepRegionBar" style="margin-bottom: 0;">
+              <button class="region-chip active" onclick="kobusFilterDepRegion('전체')">전체 (224)</button>
+              <button class="region-chip" onclick="kobusFilterDepRegion('서울')">서울</button>
+              <button class="region-chip" onclick="kobusFilterDepRegion('경기/인천')">경기/인천</button>
+              <button class="region-chip" onclick="kobusFilterDepRegion('강원')">강원</button>
+              <button class="region-chip" onclick="kobusFilterDepRegion('대전/충청/세종')">대전/충청</button>
+              <button class="region-chip" onclick="kobusFilterDepRegion('광주/전라')">광주/전라</button>
+              <button class="region-chip" onclick="kobusFilterDepRegion('부산/대구/경상')">경상권</button>
+            </div>
+          </div>
+          <div>
+            <div class="form-label" style="margin-bottom: 6px;">도착지 권역 필터 (도착터미널 필터)</div>
+            <div class="region-filter-bar" id="kobusArrRegionBar" style="margin-bottom: 0;">
+              <button class="region-chip active" onclick="kobusFilterArrRegion('전체')">전체</button>
+              <button class="region-chip" onclick="kobusFilterArrRegion('서울')">서울</button>
+              <button class="region-chip" onclick="kobusFilterArrRegion('경기/인천')">경기/인천</button>
+              <button class="region-chip" onclick="kobusFilterArrRegion('강원')">강원</button>
+              <button class="region-chip" onclick="kobusFilterArrRegion('대전/충청/세종')">대전/충청</button>
+              <button class="region-chip" onclick="kobusFilterArrRegion('광주/전라')">광주/전라</button>
+              <button class="region-chip" onclick="kobusFilterArrRegion('부산/대구/경상')">경상권</button>
+            </div>
+          </div>
         </div>
 
         <div class="grid-form">
@@ -584,15 +600,32 @@
           </div>
         </div>
 
-        <!-- 광역시도별 역 필터 -->
-        <div class="form-label" style="margin-bottom: 6px;">출발역 권역 선택</div>
-        <div class="region-filter-bar" id="trainRegionBar">
-          <button class="region-chip active" onclick="trainFilterRegion('전체')">전체 (33개역)</button>
-          <button class="region-chip" onclick="trainFilterRegion('서울/수도권')">서울/수도권</button>
-          <button class="region-chip" onclick="trainFilterRegion('대전/충청권')">대전/충청권</button>
-          <button class="region-chip" onclick="trainFilterRegion('대구/경북권')">대구/경북권</button>
-          <button class="region-chip" onclick="trainFilterRegion('부산/경남권')">부산/경남권</button>
-          <button class="region-chip" onclick="trainFilterRegion('광주/전라권')">광주/전라권</button>
+        <!-- 출발역 & 도착역 권역 독립 필터 -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px;">
+          <div>
+            <div class="form-label" style="margin-bottom: 6px;">출발역 권역 선택 (출발역 필터)</div>
+            <div class="region-filter-bar" id="trainDepRegionBar" style="margin-bottom: 0;">
+              <button class="region-chip active" onclick="trainFilterDepRegion('전체')">전체</button>
+              <button class="region-chip" onclick="trainFilterDepRegion('서울/수도권')">서울/수도권</button>
+              <button class="region-chip" onclick="trainFilterDepRegion('강원권')">강원권</button>
+              <button class="region-chip" onclick="trainFilterDepRegion('대전/충청권')">대전/충청</button>
+              <button class="region-chip" onclick="trainFilterDepRegion('대구/경북권')">대구/경북</button>
+              <button class="region-chip" onclick="trainFilterDepRegion('부산/경남권')">부산/경남</button>
+              <button class="region-chip" onclick="trainFilterDepRegion('광주/전라권')">광주/전라</button>
+            </div>
+          </div>
+          <div>
+            <div class="form-label" style="margin-bottom: 6px;">도착역 권역 선택 (도착역 필터)</div>
+            <div class="region-filter-bar" id="trainArrRegionBar" style="margin-bottom: 0;">
+              <button class="region-chip" onclick="trainFilterArrRegion('전체')">전체</button>
+              <button class="region-chip" onclick="trainFilterArrRegion('서울/수도권')">서울/수도권</button>
+              <button class="region-chip" onclick="trainFilterArrRegion('강원권')">강원권</button>
+              <button class="region-chip" onclick="trainFilterArrRegion('대전/충청권')">대전/충청</button>
+              <button class="region-chip" onclick="trainFilterArrRegion('대구/경북권')">대구/경북</button>
+              <button class="region-chip active" onclick="trainFilterArrRegion('부산/경남권')">부산/경남</button>
+              <button class="region-chip" onclick="trainFilterArrRegion('광주/전라권')">광주/전라</button>
+            </div>
+          </div>
         </div>
 
         <div class="grid-form">
@@ -1066,11 +1099,16 @@
       }
     }
 
+    let curKobusDepRegion = '전체';
+    let curKobusArrRegion = '전체';
+
     function kobusFilterDepRegion(region) {
+      curKobusDepRegion = region;
       document.querySelectorAll('#kobusDepRegionBar .region-chip').forEach(c => {
         c.classList.toggle('active', c.innerText.includes(region));
       });
       const sel = document.getElementById('kobusDepSelect');
+      const curVal = sel.value || globalKobusData.config?.departure_terminal || '010';
       sel.innerHTML = '';
 
       const termData = globalKobusData.terminals;
@@ -1083,12 +1121,29 @@
         list = termData.regions[region] || [];
       }
 
+      let matched = false;
       list.forEach(item => {
         const opt = document.createElement('option');
         opt.value = item.code;
         opt.text = item.name;
-        if (item.code === (globalKobusData.config?.departure_terminal || '010')) opt.selected = true;
+        if (item.code === curVal) {
+          opt.selected = true;
+          matched = true;
+        }
         sel.appendChild(opt);
+      });
+      if (!matched && list.length > 0) {
+        const seoul = list.find(t => t.code === '010');
+        if (seoul) sel.value = '010';
+        else sel.options[0].selected = true;
+      }
+      kobusOnDepChanged();
+    }
+
+    function kobusFilterArrRegion(region) {
+      curKobusArrRegion = region;
+      document.querySelectorAll('#kobusArrRegionBar .region-chip').forEach(c => {
+        c.classList.toggle('active', c.innerText.includes(region));
       });
       kobusOnDepChanged();
     }
@@ -1096,16 +1151,35 @@
     function kobusOnDepChanged() {
       const depCd = document.getElementById('kobusDepSelect').value;
       const arrSel = document.getElementById('kobusArrSelect');
+      const curArrVal = arrSel.value || globalKobusData.config?.arrival_terminal || '700';
       arrSel.innerHTML = '';
 
       const routes = globalKobusData.terminals?.routes?.[depCd] || [];
-      routes.forEach(r => {
+      const termData = globalKobusData.terminals;
+
+      let filteredRoutes = routes;
+      if (curKobusArrRegion !== '전체' && termData?.regions?.[curKobusArrRegion]) {
+        const regCodes = new Set(termData.regions[curKobusArrRegion].map(t => t.code));
+        filteredRoutes = routes.filter(r => regCodes.has(r.arvlCd));
+      }
+
+      let matched = false;
+      filteredRoutes.forEach(r => {
         const opt = document.createElement('option');
         opt.value = r.arvlCd;
         opt.text = r.arvlNm;
-        if (r.arvlCd === (globalKobusData.config?.arrival_terminal || '700')) opt.selected = true;
+        if (r.arvlCd === curArrVal) {
+          opt.selected = true;
+          matched = true;
+        }
         arrSel.appendChild(opt);
       });
+
+      if (!matched && filteredRoutes.length > 0) {
+        const busan = filteredRoutes.find(r => r.arvlCd === '700');
+        if (busan) arrSel.value = '700';
+        else arrSel.options[0].selected = true;
+      }
       updateKobusBanner();
     }
 
@@ -1199,7 +1273,7 @@
         const cfgRes = await fetch('/api/train/config');
         globalTrainData.config = await cfgRes.json();
 
-        trainFilterRegion('전체');
+        trainFilterDepRegion('전체'); trainFilterArrRegion('부산/경남권');
         document.getElementById('trainDateInput').value = globalTrainData.config.date ? globalTrainData.config.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : '2026-09-25';
         document.getElementById('trainMinSeats').value = globalTrainData.config.min_seats || '1';
       } catch (e) {
@@ -1207,34 +1281,78 @@
       }
     }
 
-    function trainFilterRegion(region) {
-      document.querySelectorAll('#trainRegionBar .region-chip').forEach(c => {
-        c.classList.toggle('active', c.innerText.includes(region));
+    let curTrainDepRegion = '전체';
+    let curTrainArrRegion = '부산/경남권';
+
+    function trainFilterDepRegion(region) {
+      curTrainDepRegion = region;
+      document.querySelectorAll('#trainDepRegionBar .region-chip').forEach(c => {
+        c.classList.toggle('active', c.innerText.trim() === region);
       });
       const depSel = document.getElementById('trainDepSelect');
-      const arrSel = document.getElementById('trainArrSelect');
+      const curVal = depSel.value || globalTrainData.config?.departure_station || '0551';
       depSel.innerHTML = '';
-      arrSel.innerHTML = '';
 
-      const stnData = globalTrainData.stations;
-      let allStns = [];
-      for (const [rName, list] of Object.entries(stnData)) {
+      const stnData = globalTrainData.stations || {};
+      let list = [];
+      for (const [rName, stns] of Object.entries(stnData)) {
         if (region === '전체' || rName.includes(region)) {
-          allStns = allStns.concat(list);
+          list = list.concat(stns);
         }
       }
 
-      allStns.forEach(s => {
-        const opt1 = document.createElement('option');
-        opt1.value = s.code; opt1.text = s.name;
-        if (s.code === (globalTrainData.config?.departure_station || '0551')) opt1.selected = true;
-        depSel.appendChild(opt1);
-
-        const opt2 = document.createElement('option');
-        opt2.value = s.code; opt2.text = s.name;
-        if (s.code === (globalTrainData.config?.arrival_station || '0020')) opt2.selected = true;
-        arrSel.appendChild(opt2);
+      let matched = false;
+      list.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.code;
+        opt.text = s.name;
+        if (s.code === curVal) {
+          opt.selected = true;
+          matched = true;
+        }
+        depSel.appendChild(opt);
       });
+      if (!matched && list.length > 0) {
+        const suseo = list.find(s => s.code === '0551');
+        if (suseo) depSel.value = '0551';
+        else depSel.options[0].selected = true;
+      }
+      updateTrainBanner();
+    }
+
+    function trainFilterArrRegion(region) {
+      curTrainArrRegion = region;
+      document.querySelectorAll('#trainArrRegionBar .region-chip').forEach(c => {
+        c.classList.toggle('active', c.innerText.trim() === region);
+      });
+      const arrSel = document.getElementById('trainArrSelect');
+      const curVal = arrSel.value || globalTrainData.config?.arrival_station || '0020';
+      arrSel.innerHTML = '';
+
+      const stnData = globalTrainData.stations || {};
+      let list = [];
+      for (const [rName, stns] of Object.entries(stnData)) {
+        if (region === '전체' || rName.includes(region)) {
+          list = list.concat(stns);
+        }
+      }
+
+      let matched = false;
+      list.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.code;
+        opt.text = s.name;
+        if (s.code === curVal) {
+          opt.selected = true;
+          matched = true;
+        }
+        arrSel.appendChild(opt);
+      });
+      if (!matched && list.length > 0) {
+        const busan = list.find(s => s.code === '0020');
+        if (busan) arrSel.value = '0020';
+        else arrSel.options[0].selected = true;
+      }
       updateTrainBanner();
     }
 
