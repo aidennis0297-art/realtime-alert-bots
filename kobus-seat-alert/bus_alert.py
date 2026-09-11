@@ -68,6 +68,7 @@ class KobusMonitor:
             "date": "20260923",
             "min_time": "14:00",
             "max_time": "23:59",
+            "min_seats": 1,
             "check_interval_seconds": 6,
             "sound_alert": True,
             "popup_alert": True,
@@ -133,6 +134,16 @@ class KobusMonitor:
             pass
         self.session_created_time = time.time()
         return opener
+    def fetch_regional_terminals(self):
+        """광역시도별 권역별 터미널 분류 목록 반환"""
+        reg_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "kobus_regional_terminals.json")
+        if os.path.exists(reg_file):
+            try:
+                with open(reg_file, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception:
+                pass
+        return {}
 
     def fetch_terminals(self):
         """KOBUS 1,240개 노선 연동하여 출발/도착 터미널 매핑 데이터 반환"""
@@ -176,7 +187,8 @@ class KobusMonitor:
 
                 self.terminals_cache = {
                     "departures": dep_list,
-                    "routes": routes_map
+                    "routes": routes_map,
+                    "regions": self.fetch_regional_terminals()
                 }
                 return self.terminals_cache
         except Exception as e:
@@ -188,10 +200,11 @@ class KobusMonitor:
         if time.time() - self.session_created_time > 1800:
             self.opener = self.create_session()
 
-        depr_cd = depr_cd or self.config.get("departure_terminal", "021")
-        arvl_cd = arvl_cd or self.config.get("arrival_terminal", "393")
+        depr_cd = depr_cd or self.config.get("departure_terminal", "010")
+        arvl_cd = arvl_cd or self.config.get("arrival_terminal", "700")
         date = (date or self.config.get("date", "20260923")).replace("-", "")
         min_time = min_time or self.config.get("min_time", "00:00")
+        min_seats = int(self.config.get("min_seats", 1))
         max_time = max_time or self.config.get("max_time", "23:59")
 
         min_hour = min_time.split(":")[0] if ":" in min_time else "00"
@@ -269,7 +282,7 @@ class KobusMonitor:
                 "bus_grade": bus_grade,
                 "tot_seats": tot_seats,
                 "rem_seats": rem_seats,
-                "is_vacant": rem_seats > 0,
+                "is_vacant": rem_seats >= min_seats,
                 "key": key
             })
 
@@ -478,6 +491,7 @@ class KobusMonitor:
             "date": self.config.get("date", ""),
             "min_time": self.config.get("min_time", ""),
             "max_time": self.config.get("max_time", ""),
+            "min_seats": self.config.get("min_seats", 1),
             "last_buses_count": len(self.last_buses),
             "vacant_buses": self.vacant_buses,
             "recent_logs": list(self.recent_logs)

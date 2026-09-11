@@ -1,0 +1,13 @@
+{
+  "theater_code": "1351",
+  "theater_name": "코엑스",
+  "date": "20260912",
+  "target_movie": "",
+  "special_hall_only": false,
+  "min_seats": 1,
+  "check_interval_seconds": 10,
+  "discord": {
+    "webhook_url": "https://discord.com/api/webhooks/YOUR_WEBHOOK_URL_HERE",
+    "mention": "@everyone"
+  }
+}

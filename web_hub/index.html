@@ -3,840 +3,1525 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Realtime Alert Hub • 실시간 알리미 통합 포털</title>
+  <title>Realtime Alert Hub 2.0 - 실시간 알리미 5대 통합 관제 포털</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-main: #0a0f1d;
-      --bg-card: #151d32;
-      --bg-card-hover: #1c2742;
-      --bg-input: #0a0f1d;
-      --border-color: #2a3b5c;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --primary: #3b82f6;
-      --primary-hover: #2563eb;
-      --emerald: #10b981;
-      --rose: #f43f5e;
-      --amber: #f59e0b;
-      --indigo: #6366f1;
+      --bg-base: #0b0f19;
+      --bg-surface: #111827;
+      --bg-card: #1f2937;
+      --bg-card-hover: #283548;
+      --border-color: #374151;
+      --border-light: #4b5563;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      
+      --accent-blue: #3b82f6;
+      --accent-blue-hover: #2563eb;
+      --accent-emerald: #10b981;
+      --accent-emerald-hover: #059669;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-purple: #8b5cf6;
+      --accent-indigo: #6366f1;
+      
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 18px;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    body { background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
 
-    header {
-      background: rgba(21, 29, 50, 0.95);
-      backdrop-filter: blur(14px);
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navbar */
+    .navbar {
+      background-color: var(--bg-surface);
       border-bottom: 1px solid var(--border-color);
-      position: sticky; top: 0; z-index: 100;
-      padding: 10px 24px;
-      display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
     }
-    .header-left { display: flex; align-items: center; gap: 14px; }
-    .brand-title { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
-    .brand-sub { font-size: 11px; color: var(--text-muted); }
-
-    /* Nav Tabs */
-    .nav-tabs { display: flex; background: #0c1427; padding: 4px; border-radius: 10px; border: 1px solid var(--border-color); }
-    .nav-tab {
-      padding: 8px 18px; font-size: 13px; font-weight: 700; color: var(--text-muted); cursor: pointer;
-      border-radius: 8px; border: none; background: transparent; transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
-    .nav-tab.active { background: var(--primary); color: white; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4); }
-    .nav-tab:hover:not(.active) { color: #fff; background: rgba(255, 255, 255, 0.05); }
-
-    .header-right { display: flex; align-items: center; gap: 12px; }
-    .service-pill {
-      font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 6px;
+    .nav-logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     }
-    .pill-active { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-    .pill-idle { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
-    .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 2s infinite; }
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-
-    select, input[type="text"], input[type="password"], input[type="date"], input[type="time"], input[type="number"] {
-      background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-main);
-      padding: 8px 12px; border-radius: 8px; font-size: 13px; outline: none; transition: border-color 0.2s;
+    .nav-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(90deg, #60a5fa, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
-    select:focus, input:focus { border-color: var(--primary); }
-
-    button {
-      cursor: pointer; border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
-      padding: 8px 14px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;
+    .nav-badge {
+      background-color: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #93c5fd;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      margin-left: 6px;
     }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
-    .btn-success { background: var(--emerald); color: white; }
-    .btn-success:hover:not(:disabled) { background: #059669; }
-    .btn-danger { background: var(--rose); color: white; }
-    .btn-danger:hover:not(:disabled) { background: #e11d48; }
-    .btn-secondary { background: #25334e; color: var(--text-main); }
-    .btn-secondary:hover:not(:disabled) { background: #324468; }
 
-    .container { max-width: 1440px; margin: 0 auto; padding: 20px; width: 100%; display: flex; flex-direction: column; gap: 20px; flex: 1; }
-    .tab-content { display: none; flex-direction: column; gap: 20px; }
-    .tab-content.active { display: flex; }
+    /* Tabs Bar */
+    .tab-bar {
+      display: flex;
+      gap: 6px;
+      background: var(--bg-card);
+      padding: 4px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .tab-btn:hover {
+      color: var(--text-main);
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+    .tab-btn.active {
+      background-color: var(--accent-blue);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+    }
 
+    /* Main Container */
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 24px;
+      width: 100%;
+      flex: 1;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Cards */
     .card {
-      background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px;
-      display: flex; flex-direction: column; gap: 14px;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
     }
-    .card-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-    .card-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-    .grid-form {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; background: #0e1526; padding: 14px; border-radius: 10px; align-items: end;
+    /* Buttons */
+    .btn {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
     }
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-label { font-size: 12px; font-weight: 600; color: #cbd5e1; }
+    .btn-primary {
+      background-color: var(--accent-blue);
+      color: #fff;
+    }
+    .btn-primary:hover { background-color: var(--accent-blue-hover); }
+    .btn-success {
+      background-color: var(--accent-emerald);
+      color: #fff;
+    }
+    .btn-success:hover { background-color: var(--accent-emerald-hover); }
+    .btn-danger {
+      background-color: var(--accent-rose);
+      color: #fff;
+    }
+    .btn-danger:hover { background-color: #e11d48; }
+    .btn-secondary {
+      background-color: var(--bg-card);
+      color: var(--text-main);
+      border-color: var(--border-color);
+    }
+    .btn-secondary:hover { background-color: var(--bg-card-hover); }
+
+    /* Regional Filter Buttons */
+    .region-filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+      padding: 10px;
+      background-color: var(--bg-card);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+    }
+    .region-chip {
+      background-color: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .region-chip:hover {
+      background-color: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+    }
+    .region-chip.active {
+      background-color: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+
+    /* Forms */
+    .grid-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    select, input[type="text"], input[type="date"], input[type="number"], input[type="password"] {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 9px 12px;
+      font-size: 13px;
+      border-radius: var(--radius-sm);
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+    select:focus, input:focus {
+      border-color: var(--accent-blue);
+    }
 
     /* Tables */
-    .table-container { overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
-    th { background: #0e1526; color: #cbd5e1; font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
-    td { padding: 9px 12px; border-bottom: 1px solid rgba(42, 59, 92, 0.6); color: #e2e8f0; vertical-align: middle; }
-    tr:hover td { background: var(--bg-card-hover); }
-
-    .vacant-badge { font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 6px; text-align: center; }
-    .vacant-alert { background: #10b981; color: white; animation: alert-glow 1s infinite alternate; }
-    @keyframes alert-glow { from { opacity: 0.85; } to { opacity: 1; box-shadow: 0 0 10px #10b981; } }
-    .vacant-closed { background: #25334e; color: #94a3b8; }
-
-    .star-btn { background: transparent; border: none; font-size: 18px; padding: 2px 6px; cursor: pointer; color: #facc15; }
-    .unstar-btn { color: #64748b; }
-
-    /* Watchlist Grid */
-    .watchlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-    .target-card {
-      background: #0e1526; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px;
-      display: flex; flex-direction: column; gap: 8px; position: relative;
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
     }
-    .target-card.has-vacant {
-      border-color: #34d399; background: linear-gradient(135deg, #0e1526 0%, rgba(16, 185, 129, 0.15) 100%);
-      box-shadow: 0 0 14px rgba(16, 185, 129, 0.2);
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
     }
-    .target-card-top { display: flex; justify-content: space-between; align-items: flex-start; }
-    .course-badge { font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 700; background: #25334e; color: #cbd5e1; }
-    .course-name { font-size: 15px; font-weight: 700; color: #fff; margin-top: 4px; }
-    .course-meta { font-size: 12px; color: var(--text-muted); }
-
-    /* Stats Cards in Tab 3 */
-    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
-    .stat-card {
-      background: #0e1526; border: 1px solid var(--border-color); border-radius: 12px; padding: 18px;
-      display: flex; flex-direction: column; gap: 10px;
+    th {
+      background-color: var(--bg-card);
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
     }
-    .stat-header { display: flex; justify-content: space-between; align-items: center; }
-    .stat-title { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-    .stat-metric { font-size: 24px; font-weight: 800; color: #fff; }
-    .stat-sub { font-size: 12px; color: var(--text-muted); }
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+    }
+    tr:hover td {
+      background-color: rgba(255, 255, 255, 0.02);
+    }
 
-    /* Console Box */
+    /* Badges & Status */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .badge-success {
+      background-color: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+    }
+    .badge-danger {
+      background-color: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      color: #fb7185;
+    }
+    .badge-special {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(236, 72, 153, 0.25));
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      color: #d8b4fe;
+    }
+
+    /* Status Grid */
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .status-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+    }
+    .status-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .status-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+    .status-card-val {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .status-card-desc {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* Console */
     .console-box {
-      background: #060a14; border: 1px solid #1c2742; border-radius: 8px; padding: 12px;
-      height: 240px; overflow-y: auto; font-family: "Cascadia Code", Consolas, "Courier New", monospace;
-      font-size: 12px; color: #a5f3fc; line-height: 1.6;
+      background-color: #030712;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      font-family: 'Consolas', monospace;
+      font-size: 12px;
+      height: 320px;
+      overflow-y: auto;
+      color: #38bdf8;
+      line-height: 1.6;
     }
-    .console-line { word-break: break-all; }
+
+    /* Recommended Tags */
+    .tag-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .tag-item {
+      background-color: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .tag-item:hover, .tag-item.active {
+      background-color: var(--accent-indigo);
+      color: #ffffff;
+    }
 
     /* Modals */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);
-      display: none; justify-content: center; align-items: center; z-index: 200; padding: 20px;
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
     }
-    .modal-overlay.active { display: flex; }
-    .modal-content {
-      background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px;
-      width: 100%; max-width: 520px; padding: 24px; display: flex; flex-direction: column; gap: 18px;
+    .modal-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      width: 90%;
+      max-width: 520px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
     }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; }
-    .close-btn { background: transparent; color: var(--text-muted); font-size: 20px; padding: 4px 8px; }
+
+    /* Campus Subtabs */
+    .campus-subtabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+    }
+    .campus-subtab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+    }
+    .campus-subtab-btn.active {
+      background-color: var(--bg-card);
+      color: var(--accent-blue);
+    }
   </style>
 </head>
 <body>
 
-  <!-- Top Header -->
-  <header>
-    <div class="header-left">
-      <span style="font-size: 24px;">🚀</span>
-      <div>
-        <div class="brand-title">Realtime Alert Hub</div>
-        <div class="brand-sub">고속버스 취소표 & 시립대 수강신청 통합 모니터링 포털</div>
-      </div>
+  <!-- Top Navigation -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <div class="nav-logo">⚡</div>
+      <div class="nav-title">Realtime Alert Hub 2.0</div>
+      <div class="nav-badge">ALL-IN-ONE</div>
     </div>
 
     <!-- Navigation Tabs -->
-    <div class="nav-tabs">
-      <button class="nav-tab active" onclick="switchTab('kobus')">
-        <span>🚌 고속버스 알리미</span>
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('tab-kobus')">
+        <span>🚌 고속버스 취소표</span>
       </button>
-      <button class="nav-tab" onclick="switchTab('uos')">
-        <span>🎓 시립대 수강신청</span>
+      <button class="tab-btn" onclick="switchTab('tab-train')">
+        <span>🚄 KTX/SRT 열차</span>
       </button>
-      <button class="nav-tab" onclick="switchTab('hub')">
-        <span>📊 통합 현황 & 콘솔</span>
+      <button class="tab-btn" onclick="switchTab('tab-cinema')">
+        <span>🎬 영화관 특별관</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('tab-campus')">
+        <span>🎓 시립대 스마트 캠퍼스</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('tab-console')">
+        <span>📊 통합 관제 & 콘솔</span>
       </button>
     </div>
+  </nav>
 
-    <div class="header-right">
-      <div id="kobusStatusPill" class="service-pill pill-idle">
-        <div class="pulse-dot"></div>
-        <span>고속버스: 대기</span>
-      </div>
-      <div id="uosStatusPill" class="service-pill pill-idle">
-        <div class="pulse-dot"></div>
-        <span>수강신청: 대기</span>
-      </div>
-    </div>
-  </header>
+  <!-- Main Content -->
+  <main class="container">
 
-  <div class="container">
-
-    <!-- ==================== TAB 1: KOBUS ==================== -->
-    <div id="tab-kobus" class="tab-content active">
+    <!-- 1. KOBUS 탭 -->
+    <section id="tab-kobus" class="tab-content active">
       <div class="card">
         <div class="card-header">
           <div class="card-title">
             <span>🚌 KOBUS 고속버스 노선 및 일정 선택</span>
-            <span id="kobusRouteBanner" style="font-size: 13px; font-weight: normal; color: var(--text-muted);">서울경부 ➔ 부산</span>
+            <span id="kobusRouteBanner" style="font-size: 13px; color: var(--text-muted); font-weight: normal;">서울경부 ➔ 부산</span>
           </div>
           <div style="display: flex; gap: 8px;">
-            <button id="kobusSearchBtn" class="btn-primary" onclick="kobusFetchSchedule()">
+            <button class="btn btn-primary" onclick="kobusSearch()">
               <span>🔄 실시간 배차 조회</span>
             </button>
-            <button id="kobusToggleBtn" class="btn-success" onclick="kobusToggleMonitor()">
+            <button id="kobusToggleBtn" class="btn btn-success" onclick="kobusToggle()">
               <span>▶️ 빈자리 감시 시작</span>
             </button>
-            <button class="btn-secondary" onclick="openKobusSettings()">
+            <button class="btn btn-secondary" onclick="openSettings('kobus')">
               <span>⚙️ 알림 설정</span>
             </button>
           </div>
         </div>
 
+        <!-- 광역시도별 출발 권역 필터 -->
+        <div class="form-label" style="margin-bottom: 6px;">출발지 권역 선택 (광역시도별)</div>
+        <div class="region-filter-bar" id="kobusDepRegionBar">
+          <button class="region-chip active" onclick="kobusFilterDepRegion('전체')">전체 (224)</button>
+          <button class="region-chip" onclick="kobusFilterDepRegion('서울')">서울</button>
+          <button class="region-chip" onclick="kobusFilterDepRegion('경기/인천')">경기/인천</button>
+          <button class="region-chip" onclick="kobusFilterDepRegion('강원')">강원</button>
+          <button class="region-chip" onclick="kobusFilterDepRegion('대전/충청/세종')">대전/충청/세종</button>
+          <button class="region-chip" onclick="kobusFilterDepRegion('광주/전라')">광주/전라</button>
+          <button class="region-chip" onclick="kobusFilterDepRegion('부산/대구/경상')">부산/대구/경상</button>
+        </div>
+
         <div class="grid-form">
           <div class="form-group">
             <label class="form-label">출발지 터미널</label>
-            <select id="kobusDeprSelect" onchange="kobusOnDeprChanged()">
-              <option value="021">센트럴시티(서울호남)</option>
+            <select id="kobusDepSelect" onchange="kobusOnDepChanged()">
               <option value="010" selected>서울경부</option>
-              <option value="032">동서울</option>
-              <option value="700">부산</option>
-              <option value="500">광주(유·스퀘어)</option>
             </select>
           </div>
-
           <div class="form-group">
             <label class="form-label">도착지 터미널</label>
-            <select id="kobusArvlSelect" onchange="kobusOnArvlChanged()">
+            <select id="kobusArrSelect" onchange="kobusOnArrChanged()">
               <option value="700" selected>부산</option>
             </select>
           </div>
-
           <div class="form-group">
             <label class="form-label">출발 날짜</label>
             <input type="date" id="kobusDateInput" value="2026-09-23">
           </div>
-
           <div class="form-group">
-            <label class="form-label">시작 시간</label>
-            <input type="time" id="kobusMinTime" value="14:00">
+            <label class="form-label">시간 범위</label>
+            <div style="display: flex; gap: 4px; align-items: center;">
+              <input type="text" id="kobusMinTime" value="06:00" style="width: 70px; text-align: center;">
+              <span>~</span>
+              <input type="text" id="kobusMaxTime" value="23:59" style="width: 70px; text-align: center;">
+            </div>
           </div>
-
           <div class="form-group">
-            <label class="form-label">종료 시간</label>
-            <input type="time" id="kobusMaxTime" value="23:59">
+            <label class="form-label">최소 잔여석 기준</label>
+            <select id="kobusMinSeats">
+              <option value="1" selected>1석 이상</option>
+              <option value="2">2석 이상 (연석 필요)</option>
+              <option value="3">3석 이상</option>
+              <option value="4">4석 이상</option>
+            </select>
           </div>
         </div>
-      </div>
 
-      <!-- KOBUS Timetable Table -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <span>🕒 고속버스 실시간 배차 시간표</span>
-            <span id="kobusBusCountBadge" class="course-badge">0개 배차</span>
-          </div>
-          <div id="kobusVacantAlertBanner" style="font-size: 13px; color: var(--emerald); font-weight: 700;"></div>
-        </div>
-
+        <!-- Schedule Table -->
         <div class="table-container">
           <table>
             <thead>
               <tr>
-                <th style="width: 100px;">출발시각</th>
-                <th style="width: 150px;">운행회사</th>
-                <th style="width: 120px;">버스등급</th>
-                <th style="width: 130px; text-align: center;">잔여석 / 총 좌석</th>
-                <th style="width: 130px; text-align: center;">예약 상태</th>
-                <th style="text-align: right;">예매</th>
+                <th>출발시각</th>
+                <th>고속회사</th>
+                <th>등급</th>
+                <th>총 좌석</th>
+                <th>잔여석</th>
+                <th>예약 상태</th>
+                <th>바로가기</th>
               </tr>
             </thead>
-            <tbody id="kobusTableBody">
+            <tbody id="kobusTbody">
               <tr>
-                <td colspan="6" style="text-align: center; padding: 36px; color: var(--text-muted);">
-                  상단의 <strong>[🔄 실시간 배차 조회]</strong> 버튼을 누르면 배차 목록이 표시됩니다.
+                <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 40px 0;">
+                  [🔄 실시간 배차 조회] 버튼을 눌러 시간표와 잔여석을 확인하세요.
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- ==================== TAB 2: UOS SUGANG ==================== -->
-    <div id="tab-uos" class="tab-content">
-      <!-- UOS Watchlist Card -->
+    <!-- 2. KTX/SRT 열차 탭 -->
+    <section id="tab-train" class="tab-content">
       <div class="card">
         <div class="card-header">
           <div class="card-title">
-            <span>⭐ 관심 과목 감시 목록 (Watchlist)</span>
-            <span id="uosTargetCountBadge" class="course-badge">0개 과목</span>
+            <span>🚄 KTX / SRT 열차 취소표 실시간 알리미</span>
+            <span id="trainRouteBanner" style="font-size: 13px; color: var(--text-muted); font-weight: normal;">수서 ➔ 부산</span>
           </div>
           <div style="display: flex; gap: 8px;">
-            <button id="uosToggleBtn" class="btn-success" onclick="uosToggleMonitor()">
-              <span>▶️ 수강신청 감시 시작</span>
+            <button class="btn btn-primary" onclick="trainSearch()">
+              <span>🔄 실시간 열차 조회</span>
             </button>
-            <button class="btn-secondary" onclick="openUosSettings()">
-              <span>⚙️ 포털/알림 설정</span>
+            <button id="trainToggleBtn" class="btn btn-success" onclick="trainToggle()">
+              <span>▶️ 취소표 감시 시작</span>
+            </button>
+            <button class="btn btn-secondary" onclick="openSettings('train')">
+              <span>⚙️ 알림 설정</span>
             </button>
           </div>
         </div>
 
-        <div id="uosWatchlistContainer" class="watchlist-grid">
-          <div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--text-muted); border: 1px dashed var(--border-color); border-radius: 8px;">
-            아래 과목 목록에서 <strong>⭐ 별표</strong>를 클릭하면 이곳에 등록되어 실시간 빈자리를 감시합니다.
-          </div>
-        </div>
-      </div>
-
-      <!-- UOS Course Explorer -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <span>📚 전체 개설 과목 탐색 & 검색</span>
-            <span id="uosTotalBadge" class="course-badge">0개 과목</span>
-          </div>
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <select id="uosYearSelect">
-              <option value="2026" selected>2026학년도</option>
-              <option value="2025">2025학년도</option>
-            </select>
-            <select id="uosSemSelect">
-              <option value="CCMN031.20" selected>2학기</option>
-              <option value="CCMN031.10">1학기</option>
-              <option value="CCMN031.11">여름계절</option>
-              <option value="CCMN031.21">겨울계절</option>
-            </select>
-            <button id="uosLoadCoursesBtn" class="btn-primary" onclick="uosLoadCourses(true)">
-              <span>🔄 과목 불러오기</span>
-            </button>
-          </div>
+        <!-- 광역시도별 역 필터 -->
+        <div class="form-label" style="margin-bottom: 6px;">출발역 권역 선택</div>
+        <div class="region-filter-bar" id="trainRegionBar">
+          <button class="region-chip active" onclick="trainFilterRegion('전체')">전체 (33개역)</button>
+          <button class="region-chip" onclick="trainFilterRegion('서울/수도권')">서울/수도권</button>
+          <button class="region-chip" onclick="trainFilterRegion('대전/충청권')">대전/충청권</button>
+          <button class="region-chip" onclick="trainFilterRegion('대구/경북권')">대구/경북권</button>
+          <button class="region-chip" onclick="trainFilterRegion('부산/경남권')">부산/경남권</button>
+          <button class="region-chip" onclick="trainFilterRegion('광주/전라권')">광주/전라권</button>
         </div>
 
         <div class="grid-form">
-          <div class="form-group" style="grid-column: span 2;">
-            <label class="form-label">통합 검색</label>
-            <input type="text" id="uosSearchInput" placeholder="과목명, 담당교수, 과목코드(5자리) 검색..." oninput="uosApplyFilters()">
-          </div>
-
           <div class="form-group">
-            <label class="form-label">개설 학과/학부</label>
-            <select id="uosDeptFilter" onchange="uosApplyFilters()">
-              <option value="">전체 학과/학부</option>
+            <label class="form-label">출발역</label>
+            <select id="trainDepSelect" onchange="trainOnDepChanged()">
+              <option value="0551" selected>수서</option>
             </select>
           </div>
-
           <div class="form-group">
-            <label class="form-label">이수구분</label>
-            <select id="uosTypeFilter" onchange="uosApplyFilters()">
-              <option value="">전체 이수구분</option>
-              <option value="전공필수">전공필수</option>
-              <option value="전공선택">전공선택</option>
-              <option value="교양필수">교양필수</option>
-              <option value="교양선택">교양선택</option>
-              <option value="기초선택">기초선택</option>
-              <option value="교직">교직</option>
+            <label class="form-label">도착역</label>
+            <select id="trainArrSelect" onchange="trainOnArrChanged()">
+              <option value="0020" selected>부산</option>
             </select>
           </div>
-
           <div class="form-group">
-            <label class="form-label">학년</label>
-            <select id="uosGradeFilter" onchange="uosApplyFilters()">
-              <option value="">전체 학년</option>
-              <option value="1">1학년</option>
-              <option value="2">2학년</option>
-              <option value="3">3학년</option>
-              <option value="4">4학년</option>
+            <label class="form-label">출발 날짜</label>
+            <input type="date" id="trainDateInput" value="2026-09-25">
+          </div>
+          <div class="form-group">
+            <label class="form-label">시간 범위</label>
+            <div style="display: flex; gap: 4px; align-items: center;">
+              <input type="text" id="trainMinTime" value="06:00" style="width: 70px; text-align: center;">
+              <span>~</span>
+              <input type="text" id="trainMaxTime" value="23:59" style="width: 70px; text-align: center;">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">최소 잔여석 기준</label>
+            <select id="trainMinSeats">
+              <option value="1" selected>1석 이상</option>
+              <option value="2">2석 이상 (연석 필요)</option>
+              <option value="3">3석 이상</option>
+              <option value="4">4석 이상</option>
             </select>
           </div>
         </div>
 
+        <!-- Train Table -->
         <div class="table-container">
           <table>
             <thead>
               <tr>
-                <th style="width: 44px; text-align: center;">관심</th>
-                <th style="width: 90px;">코드-분반</th>
-                <th style="width: 80px;">이수구분</th>
-                <th>과목명</th>
-                <th style="width: 50px;">학점</th>
-                <th style="width: 50px;">학년</th>
-                <th style="width: 130px;">개설학과</th>
-                <th style="width: 90px;">담당교수</th>
-                <th style="width: 140px;">강의시간/강의실</th>
-                <th style="width: 90px; text-align: center;">신청/정원</th>
-                <th style="width: 100px; text-align: center;">잔여석 현황</th>
+                <th>열차번호</th>
+                <th>열차종류</th>
+                <th>출발 ➔ 도착시각</th>
+                <th>일반실</th>
+                <th>특실/우등</th>
+                <th>예약 가능 여부</th>
+                <th>예매 바로가기</th>
               </tr>
             </thead>
-            <tbody id="uosTableBody">
+            <tbody id="trainTbody">
               <tr>
-                <td colspan="11" style="text-align: center; padding: 36px; color: var(--text-muted);">
-                  우측 상단의 <strong>[🔄 과목 불러오기]</strong> 버튼을 누르면 전체 과목이 로드됩니다.
+                <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 40px 0;">
+                  [🔄 실시간 열차 조회] 버튼을 눌러 KTX/SRT 배차 및 취소표를 확인하세요.
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- ==================== TAB 3: UNIFIED HUB & CONSOLE ==================== -->
-    <div id="tab-hub" class="tab-content">
-      <div class="stats-row">
-        <!-- KOBUS Status Card -->
-        <div class="stat-card">
-          <div class="stat-header">
-            <div class="stat-title"><span>🚌 KOBUS 고속버스 모니터</span></div>
-            <span id="hubKobusBadge" class="service-pill pill-idle">대기 중</span>
-          </div>
-          <div class="stat-metric" id="hubKobusChecks">0회 점검</div>
-          <div class="stat-sub" id="hubKobusInfo">노선: 미설정</div>
-          <div style="margin-top: 8px;">
-            <button class="btn-secondary" style="font-size: 12px; padding: 4px 10px;" onclick="switchTab('kobus')">
-              고속버스 탭으로 이동 ➔
-            </button>
-          </div>
-        </div>
-
-        <!-- UOS Status Card -->
-        <div class="stat-card">
-          <div class="stat-header">
-            <div class="stat-title"><span>🎓 시립대 수강신청 모니터</span></div>
-            <span id="hubUosBadge" class="service-pill pill-idle">대기 중</span>
-          </div>
-          <div class="stat-metric" id="hubUosChecks">0회 점검</div>
-          <div class="stat-sub" id="hubUosInfo">감시 대상: 0개 과목</div>
-          <div style="margin-top: 8px;">
-            <button class="btn-secondary" style="font-size: 12px; padding: 4px 10px;" onclick="switchTab('uos')">
-              수강신청 탭으로 이동 ➔
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Unified Console Box -->
+    <!-- 3. 영화관 특별관 탭 -->
+    <section id="tab-cinema" class="tab-content">
       <div class="card">
         <div class="card-header">
           <div class="card-title">
-            <span>📟 실시간 통합 점검 로그 (Unified Console)</span>
+            <span>🎬 영화관(메가박스) 특별관 & 명당 잔여석 알리미</span>
+            <span id="cinemaBanner" style="font-size: 13px; color: var(--text-muted); font-weight: normal;">코엑스 (돌비시네마)</span>
           </div>
           <div style="display: flex; gap: 8px;">
-            <button class="btn-secondary" style="font-size: 11px; padding: 4px 8px;" onclick="clearConsole()">
-              로그 비우기
+            <button class="btn btn-primary" onclick="cinemaSearch()">
+              <span>🔄 실시간 상영시간표 조회</span>
+            </button>
+            <button id="cinemaToggleBtn" class="btn btn-success" onclick="cinemaToggle()">
+              <span>▶️ 좌석 감시 시작</span>
+            </button>
+            <button class="btn btn-secondary" onclick="openSettings('cinema')">
+              <span>⚙️ 알림 설정</span>
             </button>
           </div>
         </div>
-        <div id="consoleBox" class="console-box">
-          <div class="console-line">[시스템 준비 완료] Alert Hub가 성공적으로 가동되었습니다.</div>
-        </div>
-      </div>
-    </div>
 
-  </div>
+        <!-- 광역시도별 극장 필터 -->
+        <div class="form-label" style="margin-bottom: 6px;">극장 지역 선택 (전국 114개 극장)</div>
+        <div class="region-filter-bar" id="cinemaRegionBar">
+          <button class="region-chip active" onclick="cinemaFilterRegion('서울')">서울 (18)</button>
+          <button class="region-chip" onclick="cinemaFilterRegion('경기')">경기 (32)</button>
+          <button class="region-chip" onclick="cinemaFilterRegion('인천')">인천 (7)</button>
+          <button class="region-chip" onclick="cinemaFilterRegion('대전/충청/세종')">대전/충청/세종 (16)</button>
+          <button class="region-chip" onclick="cinemaFilterRegion('부산/대구/경상')">부산/대구/경상 (25)</button>
+          <button class="region-chip" onclick="cinemaFilterRegion('광주/전라')">광주/전라 (9)</button>
+          <button class="region-chip" onclick="cinemaFilterRegion('강원')">강원 (4)</button>
+          <button class="region-chip" onclick="cinemaFilterRegion('제주')">제주 (3)</button>
+        </div>
 
-  <!-- KOBUS Settings Modal -->
-  <div id="kobusModal" class="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div style="font-weight: 700;">⚙️ KOBUS 고속버스 알림 설정</div>
-        <button class="close-btn" onclick="closeKobusSettings()">✕</button>
-      </div>
-      <div class="form-group">
-        <label class="form-label">디스코드 웹훅 URL (모바일 3연타 진동 푸시용)</label>
-        <div style="display: flex; gap: 8px;">
-          <input type="text" id="kobusWebhook" placeholder="https://discord.com/api/webhooks/..." style="flex: 1;">
-          <button class="btn-secondary" type="button" onclick="kobusTestDiscord()">🔔 테스트 발송</button>
+        <div class="grid-form">
+          <div class="form-group">
+            <label class="form-label">영화관 지점</label>
+            <select id="cinemaBranchSelect" onchange="cinemaOnBranchChanged()">
+              <option value="1351" selected>코엑스</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">상영 날짜</label>
+            <input type="date" id="cinemaDateInput" value="2026-09-12">
+          </div>
+          <div class="form-group">
+            <label class="form-label">영화 제목 검색 (선택)</label>
+            <input type="text" id="cinemaMovieFilter" placeholder="예: 오디세이, 아바타">
+          </div>
+          <div class="form-group">
+            <label class="form-label">최소 잔여석 기준</label>
+            <select id="cinemaMinSeats">
+              <option value="1" selected>1석 이상</option>
+              <option value="2">2석 이상 (연석 필요)</option>
+              <option value="3">3석 이상</option>
+              <option value="4">4석 이상</option>
+            </select>
+          </div>
+          <div class="form-group" style="justify-content: flex-end;">
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; padding-bottom: 8px;">
+              <input type="checkbox" id="cinemaSpecialOnly" checked>
+              <span>✨ 돌비/레이저/특별관만 표시</span>
+            </label>
+          </div>
         </div>
-        <span id="kobusDiscordMsg" style="font-size: 12px;"></span>
-      </div>
-      <div class="form-group">
-        <label class="form-label">점검 주기 (초 단위, 권장: 5~7초)</label>
-        <input type="number" id="kobusInterval" min="3" max="60" value="6">
-      </div>
-      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
-        <button class="btn-secondary" onclick="closeKobusSettings()">취소</button>
-        <button class="btn-primary" onclick="kobusSaveSettings()">저장하기</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- UOS Settings Modal -->
-  <div id="uosModal" class="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div style="font-weight: 700;">⚙️ 시립대 수강신청 계정 & 알림 설정</div>
-        <button class="close-btn" onclick="closeUosSettings()">✕</button>
-      </div>
-      <div class="form-group">
-        <label class="form-label">서울시립대 포털 학번</label>
-        <input type="text" id="uosStudentId" placeholder="학번">
-      </div>
-      <div class="form-group">
-        <label class="form-label">포털 비밀번호</label>
-        <div style="display: flex; gap: 8px;">
-          <input type="password" id="uosPassword" placeholder="비밀번호" style="flex: 1;">
-          <button class="btn-secondary" type="button" onclick="uosTestLogin()">🔑 로그인 검증</button>
+        <!-- Cinema Table -->
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>영화 제목</th>
+                <th>상영관 (포맷)</th>
+                <th>상영 시간</th>
+                <th>잔여 좌석</th>
+                <th>상태</th>
+                <th>예매 바로가기</th>
+              </tr>
+            </thead>
+            <tbody id="cinemaTbody">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 40px 0;">
+                  [🔄 실시간 상영시간표 조회] 버튼을 눌러 상영작과 좌석 현황을 확인하세요.
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <span id="uosLoginMsg" style="font-size: 12px;"></span>
       </div>
-      <div class="form-group">
-        <label class="form-label">디스코드 웹훅 URL (수강신청용)</label>
-        <div style="display: flex; gap: 8px;">
-          <input type="text" id="uosWebhook" placeholder="https://discord.com/api/webhooks/..." style="flex: 1;">
-          <button class="btn-secondary" type="button" onclick="uosTestDiscord()">🔔 테스트 발송</button>
+    </section>
+
+    <!-- 4. 시립대 스마트 캠퍼스 탭 -->
+    <section id="tab-campus" class="tab-content">
+      <div class="campus-subtabs">
+        <button class="campus-subtab-btn active" onclick="switchCampusSubtab('sub-sugang')">🎓 수강신청 알리미 (3,026과목)</button>
+        <button class="campus-subtab-btn" onclick="switchCampusSubtab('sub-library')">🏛️ 중앙도서관 열람실 실시간 좌석</button>
+        <button class="campus-subtab-btn" onclick="switchCampusSubtab('sub-notices')">📢 학사/장학/해외파견 공지 모아보기</button>
+      </div>
+
+      <!-- 4-1. 수강신청 서브탭 -->
+      <div id="sub-sugang" class="campus-sub-content">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>🎓 UOS 수강신청 빈자리 알리미 & 개설과목 탐색</span>
+              <span id="sugangStatBadge" class="badge badge-success">연결됨</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-primary" onclick="uosSearchCourses()">
+                <span>🔄 과목 새로고침</span>
+              </button>
+              <button id="uosToggleBtn" class="btn btn-success" onclick="uosToggle()">
+                <span>▶️ 수강 감시 시작</span>
+              </button>
+              <button class="btn btn-secondary" onclick="openSettings('uos')">
+                <span>⚙️ 계정 및 알림 설정</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="grid-form">
+            <div class="form-group">
+              <label class="form-label">개설 년도</label>
+              <select id="uosYearSelect">
+                <option value="2026" selected>2026 학년도</option>
+                <option value="2025">2025 학년도</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">개설 학기</label>
+              <select id="uosSemSelect">
+                <option value="CCMN031.20" selected>2학기</option>
+                <option value="CCMN031.10">1학기</option>
+                <option value="CCMN031.11">여름계절학기</option>
+                <option value="CCMN031.21">겨울계절학기</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">학과/학부 필터</label>
+              <select id="uosDeptSelect" onchange="uosFilterCourses()">
+                <option value="ALL" selected>전체 학과 (120+개)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">이수구분</label>
+              <select id="uosTypeSelect" onchange="uosFilterCourses()">
+                <option value="ALL" selected>전체 이수구분</option>
+                <option value="전필">전필 (전공필수)</option>
+                <option value="전선">전선 (전공선택)</option>
+                <option value="교필">교필 (교양필수)</option>
+                <option value="교선">교선 (교양선택)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">과목 검색 (과목명/교수/학수번호)</label>
+              <input type="text" id="uosSearchInput" placeholder="예: 인공지능, 알고리즘" oninput="uosFilterCourses()">
+            </div>
+          </div>
+
+          <!-- Courses Table -->
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 40px; text-align: center;">⭐</th>
+                  <th>학수번호-분반</th>
+                  <th>교과목명</th>
+                  <th>교수명</th>
+                  <th>이수구분</th>
+                  <th>개설학과</th>
+                  <th>신청/제한인원</th>
+                  <th>상태</th>
+                </tr>
+              </thead>
+              <tbody id="uosTbody">
+                <tr>
+                  <td colspan="8" style="text-align: center; color: var(--text-dim); padding: 40px 0;">
+                    과목 목록을 불러오는 중입니다...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <span id="uosDiscordMsg" style="font-size: 12px;"></span>
       </div>
-      <div class="form-group">
-        <label class="form-label">점검 주기 (초 단위, 권장: 5~7초)</label>
-        <input type="number" id="uosInterval" min="3" max="60" value="6">
+
+      <!-- 4-2. 도서관 열람실 서브탭 -->
+      <div id="sub-library" class="campus-sub-content" style="display: none;">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>🏛️ 서울시립대학교 중앙도서관 열람실 실시간 좌석 현황</span>
+            </div>
+            <button class="btn btn-primary" onclick="loadLibrarySeats()">
+              <span>🔄 좌석 새로고침</span>
+            </button>
+          </div>
+
+          <div class="status-grid" id="libraryCardsGrid">
+            <!-- Dynamically populated reading rooms cards -->
+          </div>
+        </div>
       </div>
-      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
-        <button class="btn-secondary" onclick="closeUosSettings()">취소</button>
-        <button class="btn-primary" onclick="uosSaveSettings()">저장하기</button>
+
+      <!-- 4-3. 공지사항 모아보기 서브탭 -->
+      <div id="sub-notices" class="campus-sub-content" style="display: none;">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>📢 시립대 학사 / 장학 / 해외파견 공지사항 모아보기</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-primary" onclick="loadNotices(true)">
+                <span>🔄 피드 새로고침</span>
+              </button>
+              <button class="btn btn-secondary" onclick="openSettings('campus')">
+                <span>🔔 키워드 알림 등록</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Recommended Search Tags -->
+          <div class="form-label">📌 추천 검색어 원클릭 필터</div>
+          <div class="tag-container" id="recommendedTagsContainer">
+            <!-- Dynamically filled with tags like #장학금, #해외파견 -->
+          </div>
+
+          <div class="form-group" style="margin-bottom: 16px;">
+            <input type="text" id="noticeSearchInput" placeholder="공지사항 제목 실시간 검색 (예: 장학금, 계절학기, 교환학생)" oninput="filterNotices()">
+          </div>
+
+          <!-- Notices Table -->
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 100px;">분류</th>
+                  <th>공지사항 제목</th>
+                  <th>태그</th>
+                  <th style="width: 140px;">게시일시</th>
+                  <th style="width: 90px;">원문 링크</th>
+                </tr>
+              </thead>
+              <tbody id="noticesTbody">
+                <!-- Dynamically filled -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. 통합 관제 & 콘솔 탭 -->
+    <section id="tab-console" class="tab-content">
+      <!-- Master Control Bar -->
+      <div class="card" style="background: linear-gradient(135deg, rgba(31, 41, 55, 0.9), rgba(17, 24, 39, 0.9));">
+        <div class="card-header">
+          <div>
+            <div style="font-size: 18px; font-weight: 800;">🚀 Alert Hub 2.0 마스터 컨트롤 센터</div>
+            <div style="font-size: 13px; color: var(--text-muted);">5대 감시 엔진의 실시간 상태를 한눈에 모니터링하고 일괄 제어합니다.</div>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn btn-success" onclick="masterStart()">
+              <span>▶️ 전체 감시 일괄 가동</span>
+            </button>
+            <button class="btn btn-danger" onclick="masterStop()">
+              <span>🛑 전체 감시 일괄 중지</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 5 Services Status Grid -->
+        <div class="status-grid">
+          <div class="status-card">
+            <div class="status-card-header">
+              <span class="status-card-title">🚌 고속버스 취소표</span>
+              <span id="kobusStatusPill" class="badge badge-danger">중지됨</span>
+            </div>
+            <div class="status-card-val" id="kobusCheckCount">0회</div>
+            <div class="status-card-desc" id="kobusStatusDesc">구간: 서울경부 ➔ 부산</div>
+          </div>
+
+          <div class="status-card">
+            <div class="status-card-header">
+              <span class="status-card-title">🚄 KTX/SRT 열차</span>
+              <span id="trainStatusPill" class="badge badge-danger">중지됨</span>
+            </div>
+            <div class="status-card-val" id="trainCheckCount">0회</div>
+            <div class="status-card-desc" id="trainStatusDesc">구간: 수서 ➔ 부산</div>
+          </div>
+
+          <div class="status-card">
+            <div class="status-card-header">
+              <span class="status-card-title">🎬 영화관 특별관</span>
+              <span id="cinemaStatusPill" class="badge badge-danger">중지됨</span>
+            </div>
+            <div class="status-card-val" id="cinemaCheckCount">0회</div>
+            <div class="status-card-desc" id="cinemaStatusDesc">극장: 코엑스 (돌비)</div>
+          </div>
+
+          <div class="status-card">
+            <div class="status-card-header">
+              <span class="status-card-title">🎓 UOS 수강신청</span>
+              <span id="uosStatusPill" class="badge badge-danger">중지됨</span>
+            </div>
+            <div class="status-card-val" id="uosCheckCount">0회</div>
+            <div class="status-card-desc" id="uosStatusDesc">감시 과목: 0개</div>
+          </div>
+
+          <div class="status-card">
+            <div class="status-card-header">
+              <span class="status-card-title">🏛️ 스마트 캠퍼스</span>
+              <span id="campusStatusPill" class="badge badge-danger">중지됨</span>
+            </div>
+            <div class="status-card-val" id="campusCheckCount">0회</div>
+            <div class="status-card-desc" id="campusStatusDesc">키워드: 장학금, 해외파견</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Integrated Log Box -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>📜 5대 서비스 실시간 통합 로그 스트림</span>
+          </div>
+          <button class="btn btn-secondary" onclick="clearConsole()">
+            <span>🧹 콘솔 지우기</span>
+          </button>
+        </div>
+        <div class="console-box" id="hubConsole">
+          [System] Alert Hub 2.0 마스터 콘솔이 초기화되었습니다. 실시간 로그가 이곳에 표시됩니다...
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal Backdrop for Settings -->
+  <div class="modal-backdrop" id="settingsModal" onclick="closeSettings(event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="card-header" style="margin-bottom: 12px;">
+        <div class="card-title" id="modalTitle">⚙️ 설정</div>
+        <button style="background: transparent; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer;" onclick="closeModal()">✕</button>
+      </div>
+      <div id="modalBody">
+        <!-- Dynamically injected settings content -->
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
+        <button class="btn btn-secondary" onclick="closeModal()">취소</button>
+        <button class="btn btn-primary" id="modalSaveBtn" onclick="saveSettingsModal()">저장</button>
       </div>
     </div>
   </div>
 
   <script>
-    // Tab switching
-    function switchTab(tabId) {
-      document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    let globalKobusData = { terminals: null, config: null };
+    let globalTrainData = { stations: null, config: null };
+    let globalCinemaData = { theaters: null, config: null };
+    let globalUosData = { courses: [], targets: [], config: null };
+    let globalCampusData = { rooms: [], notices: [], config: null };
+    let currentModalTarget = '';
 
-      if (tabId === 'kobus') {
-        document.querySelectorAll('.nav-tab')[0].classList.add('active');
-        document.getElementById('tab-kobus').classList.add('active');
-      } else if (tabId === 'uos') {
-        document.querySelectorAll('.nav-tab')[1].classList.add('active');
-        document.getElementById('tab-uos').classList.add('active');
-      } else if (tabId === 'hub') {
-        document.querySelectorAll('.nav-tab')[2].classList.add('active');
-        document.getElementById('tab-hub').classList.add('active');
+    // Tab Switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function switchCampusSubtab(subId) {
+      document.querySelectorAll('.campus-subtab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.campus-sub-content').forEach(c => c.style.display = 'none');
+      event.currentTarget.classList.add('active');
+      document.getElementById(subId).style.display = 'block';
+      if (subId === 'sub-library') loadLibrarySeats();
+      if (subId === 'sub-notices') loadNotices();
+    }
+
+    // Initialize Hub
+    window.addEventListener('DOMContentLoaded', async () => {
+      await loadKobusInitial();
+      await loadTrainInitial();
+      await loadCinemaInitial();
+      await loadUosInitial();
+      await loadLibrarySeats();
+      await loadNotices();
+      startStatusPolling();
+    });
+
+    // 1. KOBUS Methods
+    async function loadKobusInitial() {
+      try {
+        const res = await fetch('/api/kobus/terminals');
+        const data = await res.json();
+        globalKobusData.terminals = data;
+
+        const cfgRes = await fetch('/api/kobus/config');
+        globalKobusData.config = await cfgRes.json();
+
+        kobusFilterDepRegion('전체');
+        document.getElementById('kobusDateInput').value = globalKobusData.config.date ? globalKobusData.config.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : '2026-09-23';
+        document.getElementById('kobusMinSeats').value = globalKobusData.config.min_seats || '1';
+      } catch (e) {
+        console.error('Kobus init error:', e);
       }
     }
 
-    // ==================== KOBUS LOGIC ====================
-    let kobusTerminals = { departures: [], routes: {} };
-    let kobusMonitoring = false;
-
-    async function kobusInit() {
-      try {
-        const res = await fetch('/api/kobus/terminals');
-        kobusTerminals = await res.json();
-        kobusPopulateDepartures();
-      } catch (e) {}
-
-      try {
-        const res = await fetch('/api/kobus/config');
-        const cfg = await res.json();
-        if (cfg.departure_terminal) document.getElementById('kobusDeprSelect').value = cfg.departure_terminal;
-        kobusPopulateArrivals();
-        if (cfg.arrival_terminal) document.getElementById('kobusArvlSelect').value = cfg.arrival_terminal;
-        if (cfg.date && cfg.date.length === 8) {
-          document.getElementById('kobusDateInput').value = `${cfg.date.substring(0,4)}-${cfg.date.substring(4,6)}-${cfg.date.substring(6,8)}`;
-        }
-        if (cfg.min_time) document.getElementById('kobusMinTime').value = cfg.min_time;
-        if (cfg.max_time) document.getElementById('kobusMaxTime').value = cfg.max_time;
-        if (cfg.discord && cfg.discord.webhook_url) document.getElementById('kobusWebhook').value = cfg.discord.webhook_url;
-        document.getElementById('kobusInterval').value = cfg.check_interval_seconds || 6;
-        kobusUpdateBanner();
-      } catch (e) {}
-
-      kobusFetchSchedule();
-    }
-
-    function kobusPopulateDepartures() {
-      const sel = document.getElementById('kobusDeprSelect');
-      if (!kobusTerminals.departures || kobusTerminals.departures.length === 0) return;
-      const cur = sel.value;
+    function kobusFilterDepRegion(region) {
+      document.querySelectorAll('#kobusDepRegionBar .region-chip').forEach(c => {
+        c.classList.toggle('active', c.innerText.includes(region));
+      });
+      const sel = document.getElementById('kobusDepSelect');
       sel.innerHTML = '';
-      kobusTerminals.departures.forEach(d => {
+
+      const termData = globalKobusData.terminals;
+      if (!termData) return;
+
+      let list = [];
+      if (region === '전체' || !termData.regions || !termData.regions[region]) {
+        list = termData.departures || [];
+      } else {
+        list = termData.regions[region] || [];
+      }
+
+      list.forEach(item => {
         const opt = document.createElement('option');
-        opt.value = d.code;
-        opt.innerText = d.name;
-        if (d.code === cur) opt.selected = true;
+        opt.value = item.code;
+        opt.text = item.name;
+        if (item.code === (globalKobusData.config?.departure_terminal || '010')) opt.selected = true;
         sel.appendChild(opt);
       });
-      kobusPopulateArrivals();
+      kobusOnDepChanged();
     }
 
-    function kobusPopulateArrivals() {
-      const deprCd = document.getElementById('kobusDeprSelect').value;
-      const arvlSel = document.getElementById('kobusArvlSelect');
-      const cur = arvlSel.value;
-      const arrivals = (kobusTerminals.routes && kobusTerminals.routes[deprCd]) || [];
+    function kobusOnDepChanged() {
+      const depCd = document.getElementById('kobusDepSelect').value;
+      const arrSel = document.getElementById('kobusArrSelect');
+      arrSel.innerHTML = '';
 
-      arvlSel.innerHTML = '';
-      arrivals.forEach(a => {
+      const routes = globalKobusData.terminals?.routes?.[depCd] || [];
+      routes.forEach(r => {
         const opt = document.createElement('option');
-        opt.value = a.arvlCd;
-        opt.innerText = a.arvlNm;
-        if (a.arvlCd === cur) opt.selected = true;
-        arvlSel.appendChild(opt);
+        opt.value = r.arvlCd;
+        opt.text = r.arvlNm;
+        if (r.arvlCd === (globalKobusData.config?.arrival_terminal || '700')) opt.selected = true;
+        arrSel.appendChild(opt);
       });
-      kobusUpdateBanner();
+      updateKobusBanner();
     }
 
-    function kobusOnDeprChanged() {
-      kobusPopulateArrivals();
-      kobusSaveParams();
-      kobusFetchSchedule();
+    function kobusOnArrChanged() {
+      updateKobusBanner();
     }
 
-    function kobusOnArvlChanged() {
-      kobusUpdateBanner();
-      kobusSaveParams();
-      kobusFetchSchedule();
-    }
-
-    function kobusUpdateBanner() {
-      const d = document.getElementById('kobusDeprSelect');
-      const a = document.getElementById('kobusArvlSelect');
-      const dName = d.options[d.selectedIndex] ? d.options[d.selectedIndex].text : '';
-      const aName = a.options[a.selectedIndex] ? a.options[a.selectedIndex].text : '';
+    function updateKobusBanner() {
+      const dep = document.getElementById('kobusDepSelect');
+      const arr = document.getElementById('kobusArrSelect');
+      const dName = dep.options[dep.selectedIndex]?.text || '';
+      const aName = arr.options[arr.selectedIndex]?.text || '';
       document.getElementById('kobusRouteBanner').innerText = `${dName} ➔ ${aName}`;
     }
 
-    async function kobusSaveParams() {
-      const d = document.getElementById('kobusDeprSelect');
-      const a = document.getElementById('kobusArvlSelect');
-      const payload = {
-        departure_terminal: d.value,
-        departure_name: d.options[d.selectedIndex] ? d.options[d.selectedIndex].text : '',
-        arrival_terminal: a.value,
-        arrival_name: a.options[a.selectedIndex] ? a.options[a.selectedIndex].text : '',
-        date: document.getElementById('kobusDateInput').value.replace(/-/g, ''),
-        min_time: document.getElementById('kobusMinTime').value,
-        max_time: document.getElementById('kobusMaxTime').value,
-        discord: { enabled: true, webhook_url: document.getElementById('kobusWebhook').value.trim() },
-        check_interval_seconds: parseInt(document.getElementById('kobusInterval').value, 10) || 6
-      };
-      await fetch('/api/kobus/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    }
+    async function kobusSearch() {
+      const dep = document.getElementById('kobusDepSelect').value;
+      const arr = document.getElementById('kobusArrSelect').value;
+      const dt = document.getElementById('kobusDateInput').value.replace(/-/g, '');
+      const minTm = document.getElementById('kobusMinTime').value;
+      const maxTm = document.getElementById('kobusMaxTime').value;
+      const minSt = document.getElementById('kobusMinSeats').value;
 
-    async function kobusFetchSchedule() {
-      const deprCd = document.getElementById('kobusDeprSelect').value;
-      const arvlCd = document.getElementById('kobusArvlSelect').value;
-      const date = document.getElementById('kobusDateInput').value.replace(/-/g, '');
-      const minTime = document.getElementById('kobusMinTime').value;
-      const maxTime = document.getElementById('kobusMaxTime').value;
+      const tbody = document.getElementById('kobusTbody');
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 30px;">조회 중...</td></tr>';
 
       try {
-        const url = `/api/kobus/schedule?deprCd=${deprCd}&arvlCd=${arvlCd}&date=${date}&minTime=${encodeURIComponent(minTime)}&maxTime=${encodeURIComponent(maxTime)}`;
-        const res = await fetch(url);
+        const res = await fetch(`/api/kobus/schedule?deprCd=${dep}&arvlCd=${arr}&date=${dt}&minTime=${minTm}&maxTime=${maxTm}&minSeats=${minSt}`);
         const data = await res.json();
         const buses = data.buses || [];
-        kobusRenderTimetable(buses);
-      } catch (e) {}
-    }
 
-    function kobusRenderTimetable(buses) {
-      const tbody = document.getElementById('kobusTableBody');
-      document.getElementById('kobusBusCountBadge').innerText = `총 ${buses.length}개 배차`;
-      const vacantCount = buses.filter(b => b.is_vacant).length;
+        if (buses.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-dim); padding: 30px;">해당 조건의 운행 배차가 없습니다.</td></tr>';
+          return;
+        }
 
-      const alertBanner = document.getElementById('kobusVacantAlertBanner');
-      if (vacantCount > 0) alertBanner.innerText = `🚨 취소표 ${vacantCount}건 발생! 예매 가능!`;
-      else alertBanner.innerText = `전 배차 매진`;
-
-      if (buses.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: var(--text-muted);">해당 조건의 운행 배차가 없습니다.</td></tr>';
-        return;
-      }
-
-      let html = '';
-      buses.forEach(b => {
-        const badge = b.is_vacant
-          ? `<span class="vacant-badge vacant-alert">🎉 ${b.rem_seats}석 가능</span>`
-          : `<span class="vacant-badge vacant-closed">매진</span>`;
-        html += `
+        tbody.innerHTML = buses.map(b => `
           <tr>
-            <td><strong style="color: #fff;">${b.depr_time}</strong></td>
+            <td style="font-weight: 700;">${b.depr_time}</td>
             <td>${b.company}</td>
-            <td>${b.bus_grade}</td>
-            <td style="text-align: center; font-weight: 600;">${b.rem_seats} / ${b.tot_seats}</td>
-            <td style="text-align: center;">${badge}</td>
-            <td style="text-align: right;">
-              <a href="https://www.kobus.co.kr/mrs/rotinf.do" target="_blank" class="btn-secondary" style="padding: 4px 8px; font-size: 11px; text-decoration: none;">예매 ➔</a>
-            </td>
-          </tr>`;
-      });
-      tbody.innerHTML = html;
-    }
-
-    async function kobusToggleMonitor() {
-      await kobusSaveParams();
-      const endpoint = kobusMonitoring ? '/api/kobus/monitor/stop' : '/api/kobus/monitor/start';
-      const res = await fetch(endpoint, { method: 'POST' });
-      const data = await res.json();
-      if (data.success) {
-        kobusMonitoring = !kobusMonitoring;
-        updateKobusUI();
+            <td><span class="badge ${b.bus_grade.includes('프리미엄') ? 'badge-special' : 'badge-success'}">${b.bus_grade}</span></td>
+            <td>${b.tot_seats}석</td>
+            <td style="font-weight: 700; color: ${b.rem_seats >= minSt ? '#34d399' : '#fb7185'};">${b.rem_seats}석</td>
+            <td>${b.is_vacant ? '<span class="badge badge-success">예약가능</span>' : '<span class="badge badge-danger">매진</span>'}</td>
+            <td><a href="https://www.kobus.co.kr/mrs/rotinf.do" target="_blank" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;">예매창</a></td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--accent-rose);">조회 실패: ${e}</td></tr>`;
       }
     }
 
-    function updateKobusUI() {
+    async function kobusToggle() {
       const btn = document.getElementById('kobusToggleBtn');
-      const pill = document.getElementById('kobusStatusPill');
-      if (kobusMonitoring) {
-        btn.className = 'btn-danger'; btn.innerHTML = '<span>⏹️ 고속버스 감시 중지</span>';
-        pill.className = 'service-pill pill-active'; pill.innerHTML = '<div class="pulse-dot"></div><span>고속버스: 감시 중</span>';
-      } else {
-        btn.className = 'btn-success'; btn.innerHTML = '<span>▶️ 빈자리 감시 시작</span>';
-        pill.className = 'service-pill pill-idle'; pill.innerHTML = '<div class="pulse-dot"></div><span>고속버스: 대기</span>';
+      const isRunning = btn.innerText.includes('중지');
+      const endpoint = isRunning ? '/api/kobus/monitor/stop' : '/api/kobus/monitor/start';
+      
+      // Save current parameters before starting
+      if (!isRunning) {
+        const dep = document.getElementById('kobusDepSelect');
+        const arr = document.getElementById('kobusArrSelect');
+        await fetch('/api/kobus/config', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            departure_terminal: dep.value,
+            departure_name: dep.options[dep.selectedIndex]?.text || '',
+            arrival_terminal: arr.value,
+            arrival_name: arr.options[arr.selectedIndex]?.text || '',
+            date: document.getElementById('kobusDateInput').value.replace(/-/g, ''),
+            min_time: document.getElementById('kobusMinTime').value,
+            max_time: document.getElementById('kobusMaxTime').value,
+            min_seats: parseInt(document.getElementById('kobusMinSeats').value)
+          })
+        });
       }
-    }
 
-    function openKobusSettings() { document.getElementById('kobusModal').classList.add('active'); }
-    function closeKobusSettings() { document.getElementById('kobusModal').classList.remove('active'); }
-    async function kobusSaveSettings() { await kobusSaveParams(); alert('KOBUS 설정이 저장되었습니다.'); closeKobusSettings(); }
-    async function kobusTestDiscord() {
-      const msg = document.getElementById('kobusDiscordMsg');
-      msg.innerText = '전송 중...';
-      const res = await fetch('/api/kobus/discord/test', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ webhook_url: document.getElementById('kobusWebhook').value.trim() })
-      });
+      const res = await fetch(endpoint, {method: 'POST'});
       const data = await res.json();
-      msg.innerText = data.success ? '✅ 발송 완료!' : '❌ ' + data.message;
+      alert(data.message);
+      updateHubStatus();
     }
 
-    // ==================== UOS LOGIC ====================
-    let uosCourses = [];
-    let uosFiltered = [];
-    let uosTargets = [];
-    let uosMonitoring = false;
-
-    async function uosInit() {
+    // 2. Train (KTX/SRT) Methods
+    async function loadTrainInitial() {
       try {
-        const res = await fetch('/api/uos/config');
+        const res = await fetch('/api/train/stations');
         const data = await res.json();
-        uosTargets = data.target_courses || [];
-        document.getElementById('uosStudentId').value = data.student_id || '';
-        document.getElementById('uosPassword').value = data.password || '';
-        if (data.discord && data.discord.webhook_url) document.getElementById('uosWebhook').value = data.discord.webhook_url;
-        document.getElementById('uosInterval').value = data.check_interval_seconds || 6;
-        uosRenderWatchlist();
-      } catch (e) {}
+        globalTrainData.stations = data.regions || {};
 
-      uosLoadCourses(false);
-    }
+        const cfgRes = await fetch('/api/train/config');
+        globalTrainData.config = await cfgRes.json();
 
-    async function uosLoadCourses(force = false) {
-      const year = document.getElementById('uosYearSelect').value;
-      const sem = document.getElementById('uosSemSelect').value;
-      const btn = document.getElementById('uosLoadCoursesBtn');
-      btn.disabled = true; btn.innerText = '⏳ 로딩 중...';
-      try {
-        const res = await fetch(`/api/uos/courses?year=${year}&sem=${sem}&refresh=${force ? '1' : '0'}`);
-        const data = await res.json();
-        uosCourses = data.courses || [];
-        document.getElementById('uosTotalBadge').innerText = `${uosCourses.length.toLocaleString()}개 과목`;
-        uosPopulateDepts();
-        uosApplyFilters();
-      } catch (e) {} finally {
-        btn.disabled = false; btn.innerText = '🔄 과목 불러오기';
+        trainFilterRegion('전체');
+        document.getElementById('trainDateInput').value = globalTrainData.config.date ? globalTrainData.config.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : '2026-09-25';
+        document.getElementById('trainMinSeats').value = globalTrainData.config.min_seats || '1';
+      } catch (e) {
+        console.error('Train init error:', e);
       }
     }
 
-    function uosPopulateDepts() {
-      const depts = Array.from(new Set(uosCourses.map(c => c.dept).filter(Boolean))).sort();
-      const sel = document.getElementById('uosDeptFilter');
-      const cur = sel.value;
-      sel.innerHTML = '<option value="">전체 학과/학부</option>';
-      depts.forEach(d => {
+    function trainFilterRegion(region) {
+      document.querySelectorAll('#trainRegionBar .region-chip').forEach(c => {
+        c.classList.toggle('active', c.innerText.includes(region));
+      });
+      const depSel = document.getElementById('trainDepSelect');
+      const arrSel = document.getElementById('trainArrSelect');
+      depSel.innerHTML = '';
+      arrSel.innerHTML = '';
+
+      const stnData = globalTrainData.stations;
+      let allStns = [];
+      for (const [rName, list] of Object.entries(stnData)) {
+        if (region === '전체' || rName.includes(region)) {
+          allStns = allStns.concat(list);
+        }
+      }
+
+      allStns.forEach(s => {
+        const opt1 = document.createElement('option');
+        opt1.value = s.code; opt1.text = s.name;
+        if (s.code === (globalTrainData.config?.departure_station || '0551')) opt1.selected = true;
+        depSel.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = s.code; opt2.text = s.name;
+        if (s.code === (globalTrainData.config?.arrival_station || '0020')) opt2.selected = true;
+        arrSel.appendChild(opt2);
+      });
+      updateTrainBanner();
+    }
+
+    function trainOnDepChanged() { updateTrainBanner(); }
+    function trainOnArrChanged() { updateTrainBanner(); }
+
+    function updateTrainBanner() {
+      const dep = document.getElementById('trainDepSelect');
+      const arr = document.getElementById('trainArrSelect');
+      const dName = dep.options[dep.selectedIndex]?.text || '';
+      const aName = arr.options[arr.selectedIndex]?.text || '';
+      document.getElementById('trainRouteBanner').innerText = `${dName} ➔ ${aName}`;
+    }
+
+    async function trainSearch() {
+      const dep = document.getElementById('trainDepSelect').value;
+      const arr = document.getElementById('trainArrSelect').value;
+      const dt = document.getElementById('trainDateInput').value.replace(/-/g, '');
+      const minTm = document.getElementById('trainMinTime').value;
+      const maxTm = document.getElementById('trainMaxTime').value;
+      const minSt = document.getElementById('trainMinSeats').value;
+
+      const tbody = document.getElementById('trainTbody');
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 30px;">KTX/SRT 열차 시간표 조회 중...</td></tr>';
+
+      try {
+        const res = await fetch(`/api/train/schedule?depCode=${dep}&arrCode=${arr}&date=${dt}&minTime=${minTm}&maxTime=${maxTm}&minSeats=${minSt}`);
+        const data = await res.json();
+        const trains = data.trains || [];
+
+        if (trains.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-dim); padding: 30px;">해당 조건의 열차가 없습니다.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = trains.map(t => `
+          <tr>
+            <td style="font-weight: 700;">${t.trn_no}</td>
+            <td><span class="badge badge-special">${t.trn_name}</span></td>
+            <td><strong>${t.dpt_time}</strong> ➔ ${t.arv_time}</td>
+            <td><span class="badge ${t.general_seat.includes('가능') ? 'badge-success' : 'badge-danger'}">${t.general_seat}</span></td>
+            <td><span class="badge ${t.special_seat.includes('가능') ? 'badge-success' : 'badge-danger'}">${t.special_seat}</span></td>
+            <td>${t.has_seat ? '<span class="badge badge-success">예약가능</span>' : '<span class="badge badge-danger">매진</span>'}</td>
+            <td><a href="${t.reserve_url}" target="_blank" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;">예매하기</a></td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--accent-rose);">조회 실패: ${e}</td></tr>`;
+      }
+    }
+
+    async function trainToggle() {
+      const btn = document.getElementById('trainToggleBtn');
+      const isRunning = btn.innerText.includes('중지');
+      const endpoint = isRunning ? '/api/train/monitor/stop' : '/api/train/monitor/start';
+
+      if (!isRunning) {
+        const dep = document.getElementById('trainDepSelect');
+        const arr = document.getElementById('trainArrSelect');
+        await fetch('/api/train/config', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            departure_station: dep.value,
+            departure_name: dep.options[dep.selectedIndex]?.text || '',
+            arrival_station: arr.value,
+            arrival_name: arr.options[arr.selectedIndex]?.text || '',
+            date: document.getElementById('trainDateInput').value.replace(/-/g, ''),
+            min_time: document.getElementById('trainMinTime').value,
+            max_time: document.getElementById('trainMaxTime').value,
+            min_seats: parseInt(document.getElementById('trainMinSeats').value)
+          })
+        });
+      }
+
+      const res = await fetch(endpoint, {method: 'POST'});
+      const data = await res.json();
+      alert(data.message);
+      updateHubStatus();
+    }
+
+    // 3. Cinema (Megabox) Methods
+    async function loadCinemaInitial() {
+      try {
+        const res = await fetch('/api/cinema/theaters');
+        const data = await res.json();
+        globalCinemaData.theaters = data.regions || {};
+
+        const cfgRes = await fetch('/api/cinema/config');
+        globalCinemaData.config = await cfgRes.json();
+
+        cinemaFilterRegion('서울');
+        document.getElementById('cinemaDateInput').value = globalCinemaData.config.date ? globalCinemaData.config.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : '2026-09-12';
+        document.getElementById('cinemaMinSeats').value = globalCinemaData.config.min_seats || '1';
+      } catch (e) {
+        console.error('Cinema init error:', e);
+      }
+    }
+
+    function cinemaFilterRegion(region) {
+      document.querySelectorAll('#cinemaRegionBar .region-chip').forEach(c => {
+        c.classList.toggle('active', c.innerText.includes(region));
+      });
+      const sel = document.getElementById('cinemaBranchSelect');
+      sel.innerHTML = '';
+
+      const thList = globalCinemaData.theaters[region] || [];
+      thList.forEach(t => {
         const opt = document.createElement('option');
-        opt.value = d; opt.innerText = d;
-        if (d === cur) opt.selected = true;
+        opt.value = t.code; opt.text = t.name;
+        if (t.code === (globalCinemaData.config?.theater_code || '1351')) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      cinemaOnBranchChanged();
+    }
+
+    function cinemaOnBranchChanged() {
+      const sel = document.getElementById('cinemaBranchSelect');
+      const name = sel.options[sel.selectedIndex]?.text || '';
+      document.getElementById('cinemaBanner').innerText = `메가박스 ${name}`;
+    }
+
+    async function cinemaSearch() {
+      const th = document.getElementById('cinemaBranchSelect').value;
+      const dt = document.getElementById('cinemaDateInput').value.replace(/-/g, '');
+      const mv = document.getElementById('cinemaMovieFilter').value;
+      const spc = document.getElementById('cinemaSpecialOnly').checked ? '1' : '0';
+      const minSt = document.getElementById('cinemaMinSeats').value;
+
+      const tbody = document.getElementById('cinemaTbody');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px;">상영시간표 조회 중...</td></tr>';
+
+      try {
+        const res = await fetch(`/api/cinema/schedule?theaterCode=${th}&date=${dt}&movieFilter=${encodeURIComponent(mv)}&specialOnly=${spc}&minSeats=${minSt}`);
+        const data = await res.json();
+        const shows = data.showtimes || [];
+
+        if (shows.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-dim); padding: 30px;">조건에 맞는 상영 회차가 없습니다.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = shows.map(s => `
+          <tr>
+            <td style="font-weight: 700;">${s.movie_name}</td>
+            <td>
+              <span class="badge ${s.is_special ? 'badge-special' : 'badge-secondary'}">${s.hall_name}</span>
+            </td>
+            <td><strong>${s.start_time}</strong> ~ ${s.end_time}</td>
+            <td style="font-weight: 700; color: ${s.rest_seats >= minSt ? '#34d399' : '#fb7185'};">
+              ${s.rest_seats}석 / ${s.total_seats}석
+            </td>
+            <td>
+              ${s.has_seats ? '<span class="badge badge-success">예약가능</span>' : '<span class="badge badge-danger">매진</span>'}
+            </td>
+            <td>
+              <a href="${s.booking_url}" target="_blank" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;">예매창</a>
+            </td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--accent-rose);">조회 실패: ${e}</td></tr>`;
+      }
+    }
+
+    async function cinemaToggle() {
+      const btn = document.getElementById('cinemaToggleBtn');
+      const isRunning = btn.innerText.includes('중지');
+      const endpoint = isRunning ? '/api/cinema/monitor/stop' : '/api/cinema/monitor/start';
+
+      if (!isRunning) {
+        const sel = document.getElementById('cinemaBranchSelect');
+        await fetch('/api/cinema/config', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            theater_code: sel.value,
+            theater_name: sel.options[sel.selectedIndex]?.text || '',
+            date: document.getElementById('cinemaDateInput').value.replace(/-/g, ''),
+            target_movie: document.getElementById('cinemaMovieFilter').value,
+            special_hall_only: document.getElementById('cinemaSpecialOnly').checked,
+            min_seats: parseInt(document.getElementById('cinemaMinSeats').value)
+          })
+        });
+      }
+
+      const res = await fetch(endpoint, {method: 'POST'});
+      const data = await res.json();
+      alert(data.message);
+      updateHubStatus();
+    }
+
+    // 4. UOS Sugang Methods
+    async function loadUosInitial() {
+      try {
+        const cfgRes = await fetch('/api/uos/config');
+        globalUosData.config = await cfgRes.json();
+        globalUosData.targets = globalUosData.config.target_courses || [];
+        await uosSearchCourses();
+      } catch (e) {
+        console.error('UOS init error:', e);
+      }
+    }
+
+    async function uosSearchCourses(forceRefresh = false) {
+      const yr = document.getElementById('uosYearSelect').value;
+      const sem = document.getElementById('uosSemSelect').value;
+      const tbody = document.getElementById('uosTbody');
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 30px;">과목 데이터를 불러오는 중입니다...</td></tr>';
+
+      try {
+        const res = await fetch(`/api/uos/courses?year=${yr}&sem=${sem}&refresh=${forceRefresh ? '1' : '0'}`);
+        const data = await res.json();
+        globalUosData.courses = data.courses || [];
+        populateUosDepts();
+        uosFilterCourses();
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--accent-rose);">불러오기 실패: ${e}</td></tr>`;
+      }
+    }
+
+    function populateUosDepts() {
+      const depts = new Set();
+      globalUosData.courses.forEach(c => { if (c.dept) depts.add(c.dept); });
+      const sel = document.getElementById('uosDeptSelect');
+      sel.innerHTML = '<option value="ALL" selected>전체 학과 (120+개)</option>';
+      Array.from(depts).sort().forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d; opt.text = d;
         sel.appendChild(opt);
       });
     }
 
-    function uosApplyFilters() {
-      const query = document.getElementById('uosSearchInput').value.trim().toLowerCase();
-      const dept = document.getElementById('uosDeptFilter').value;
-      const type = document.getElementById('uosTypeFilter').value;
-      const grade = document.getElementById('uosGradeFilter').value;
+    function uosFilterCourses() {
+      const deptFilter = document.getElementById('uosDeptSelect').value;
+      const typeFilter = document.getElementById('uosTypeSelect').value;
+      const search = document.getElementById('uosSearchInput').value.toLowerCase().trim();
 
-      uosFiltered = uosCourses.filter(c => {
-        if (dept && c.dept !== dept) return false;
-        if (type && !c.type.includes(type)) return false;
-        if (grade && c.grade !== grade && !c.grade.startsWith(grade)) return false;
-        if (query) {
-          const mCode = c.code.toLowerCase().includes(query);
-          const mName = c.name.toLowerCase().includes(query);
-          const mProf = c.prof.toLowerCase().includes(query);
-          if (!mCode && !mName && !mProf) return false;
+      const filtered = globalUosData.courses.filter(c => {
+        if (deptFilter !== 'ALL' && c.dept !== deptFilter) return false;
+        if (typeFilter !== 'ALL' && !c.type.includes(typeFilter)) return false;
+        if (search) {
+          const matchName = c.name?.toLowerCase().includes(search);
+          const matchProf = c.prof?.toLowerCase().includes(search);
+          const matchCode = c.code?.toLowerCase().includes(search);
+          if (!matchName && !matchProf && !matchCode) return false;
         }
         return true;
       });
 
-      uosRenderTable();
+      renderUosTable(filtered);
     }
 
-    function uosRenderTable() {
-      const tbody = document.getElementById('uosTableBody');
-      if (uosFiltered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 25px; color: var(--text-muted);">조건에 일치하는 과목이 없습니다.</td></tr>';
+    function isUosTarget(code, div) {
+      return globalUosData.targets.some(t => t.code === code && t.div === div);
+    }
+
+    function renderUosTable(courses) {
+      const tbody = document.getElementById('uosTbody');
+      if (courses.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-dim); padding: 30px;">조건에 일치하는 과목이 없습니다.</td></tr>';
         return;
       }
-      const pageItems = uosFiltered.slice(0, 50); // top 50
-      const starredKeys = new Set(uosTargets.map(t => `${t.code}_${t.div}`));
 
-      let html = '';
-      pageItems.forEach(c => {
-        const isStarred = starredKeys.has(`${c.code}_${c.div}`);
-        const isVacant = c.rem > 0;
-        const vacantBadge = isVacant
-          ? `<span style="color: #34d399; font-weight: 700; background: rgba(16,185,129,0.15); padding: 3px 6px; border-radius: 4px;">🎉 ${c.rem}석 여유</span>`
-          : `<span style="color: #94a3b8; font-size: 12px;">마감</span>`;
-
-        html += `
+      tbody.innerHTML = courses.slice(0, 100).map(c => {
+        const isStarred = isUosTarget(c.code, c.div);
+        return `
           <tr>
-            <td style="text-align: center;">
-              <button class="star-btn ${isStarred ? '' : 'unstar-btn'}" onclick="uosToggleTarget('${c.code}', '${c.div}', '${encodeURIComponent(c.name)}', '${encodeURIComponent(c.prof)}', '${encodeURIComponent(c.dept)}', '${encodeURIComponent(c.type)}')">
-                ${isStarred ? '⭐' : '☆'}
-              </button>
+            <td style="text-align: center; cursor: pointer; font-size: 16px;" onclick="toggleUosTarget('${c.code}', '${c.div}', '${encodeURIComponent(c.name)}', '${encodeURIComponent(c.prof)}', '${encodeURIComponent(c.dept)}', '${encodeURIComponent(c.type)}')">
+              ${isStarred ? '⭐' : '☆'}
             </td>
-            <td><strong>${c.code}</strong>-${c.div}</td>
-            <td>${c.type}</td>
-            <td><strong>${c.name}</strong></td>
-            <td>${c.point}</td>
-            <td>${c.grade}</td>
-            <td>${c.dept}</td>
+            <td style="font-weight: 600;">${c.code}-${c.div}</td>
+            <td style="font-weight: 700;">${c.name}</td>
             <td>${c.prof}</td>
-            <td style="font-size: 12px; color: #cbd5e1;">${c.time_room || '-'}</td>
-            <td style="text-align: center; font-weight: 600;">${c.cur} / ${c.limit}</td>
-            <td style="text-align: center;">${vacantBadge}</td>
-          </tr>`;
-      });
-      tbody.innerHTML = html;
+            <td><span class="badge badge-secondary">${c.type}</span></td>
+            <td>${c.dept}</td>
+            <td>${c.current_cap}/${c.max_cap}</td>
+            <td>${c.has_vacancy ? '<span class="badge badge-success">여석있음</span>' : '<span class="badge badge-danger">매진</span>'}</td>
+          </tr>
+        `;
+      }).join('');
     }
 
-    async function uosToggleTarget(code, div, nameEnc, profEnc, deptEnc, typeEnc) {
+    async function toggleUosTarget(code, div, nameEnc, profEnc, deptEnc, typeEnc) {
       const res = await fetch('/api/uos/targets/toggle', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
           code, div,
           name: decodeURIComponent(nameEnc),
@@ -846,158 +1531,394 @@
         })
       });
       const data = await res.json();
-      if (data.success) {
-        uosTargets = data.target_courses;
-        uosRenderWatchlist();
-        uosRenderTable();
+      globalUosData.targets = data.target_courses || [];
+      uosFilterCourses();
+      updateHubStatus();
+    }
+
+    async function uosToggle() {
+      const btn = document.getElementById('uosToggleBtn');
+      const isRunning = btn.innerText.includes('중지');
+      const endpoint = isRunning ? '/api/uos/monitor/stop' : '/api/uos/monitor/start';
+
+      const res = await fetch(endpoint, {method: 'POST'});
+      const data = await res.json();
+      alert(data.message);
+      updateHubStatus();
+    }
+
+    // 5. UOS Smart Campus (Library & Notices)
+    async function loadLibrarySeats() {
+      const grid = document.getElementById('libraryCardsGrid');
+      grid.innerHTML = '<div style="color: var(--text-dim); padding: 20px;">열람실 좌석 현황 로드 중...</div>';
+
+      try {
+        const res = await fetch('/api/campus/library');
+        const data = await res.json();
+        const rooms = data.rooms || [];
+
+        if (rooms.length === 0) {
+          grid.innerHTML = '<div style="color: var(--text-dim); padding: 20px;">조회된 열람실이 없습니다.</div>';
+          return;
+        }
+
+        grid.innerHTML = rooms.map(r => {
+          let statusBadge = 'badge-success';
+          let statusText = '여유';
+          if (r.occupancy_rate >= 80) { statusBadge = 'badge-danger'; statusText = '혼잡'; }
+          else if (r.occupancy_rate >= 50) { statusBadge = 'badge-special'; statusText = '보통'; }
+
+          return `
+            <div class="status-card">
+              <div class="status-card-header">
+                <span class="status-card-title">${r.lib_name}</span>
+                <span class="badge ${statusBadge}">${statusText} (${r.occupancy_rate}%)</span>
+              </div>
+              <div style="font-weight: 700; font-size: 15px;">${r.room_name}</div>
+              <div class="status-card-val" style="color: ${r.remain_seat > 0 ? '#34d399' : '#fb7185'};">
+                잔여 ${r.remain_seat}석
+              </div>
+              <div class="status-card-desc">
+                사용 ${r.use_seat}석 / 전체 ${r.total_seat}석
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        grid.innerHTML = `<div style="color: var(--accent-rose); padding: 20px;">좌석 로드 실패: ${e}</div>`;
       }
     }
 
-    function uosRenderWatchlist() {
-      const container = document.getElementById('uosWatchlistContainer');
-      document.getElementById('uosTargetCountBadge').innerText = `${uosTargets.length}개 과목`;
-      if (uosTargets.length === 0) {
-        container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--text-muted); border: 1px dashed var(--border-color); border-radius: 8px;">아래 과목 목록에서 ⭐ 별표를 클릭하면 등록됩니다.</div>`;
+    async function loadNotices(forceRefresh = false) {
+      const tbody = document.getElementById('noticesTbody');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">공지사항 피드 동기화 중...</td></tr>';
+
+      try {
+        const res = await fetch(`/api/campus/notices?refresh=${forceRefresh ? '1' : '0'}`);
+        const data = await res.json();
+        globalCampusData.notices = data.notices || [];
+
+        // Render recommended tags
+        const tagContainer = document.getElementById('recommendedTagsContainer');
+        tagContainer.innerHTML = (data.recommended_tags || []).map(t => `
+          <button class="tag-item" onclick="selectNoticeTag('${t}')">${t}</button>
+        `).join('');
+
+        filterNotices();
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--accent-rose);">공지 로드 실패: ${e}</td></tr>`;
+      }
+    }
+
+    function selectNoticeTag(tag) {
+      document.querySelectorAll('#recommendedTagsContainer .tag-item').forEach(el => {
+        el.classList.toggle('active', el.innerText === tag);
+      });
+      const tagWord = tag.replace('#', '');
+      document.getElementById('noticeSearchInput').value = tagWord;
+      filterNotices();
+    }
+
+    function filterNotices() {
+      const query = document.getElementById('noticeSearchInput').value.toLowerCase().trim();
+      const tbody = document.getElementById('noticesTbody');
+
+      const filtered = globalCampusData.notices.filter(n => {
+        if (!query) return true;
+        const inTitle = n.title?.toLowerCase().includes(query);
+        const inTags = n.tags?.some(t => t.toLowerCase().includes(query));
+        const inCat = n.category?.toLowerCase().includes(query);
+        return inTitle || inTags || inCat;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-dim); padding: 30px;">검색 조건에 맞는 공지사항이 없습니다.</td></tr>';
         return;
       }
-      let html = '';
-      uosTargets.forEach(t => {
-        const matched = uosCourses.find(c => c.code === t.code && c.div === t.div);
-        const cur = matched ? matched.cur : (t.cur || 0);
-        const limit = matched ? matched.limit : (t.limit || 0);
-        const rem = matched ? matched.rem : Math.max(0, limit - cur);
-        const isVacant = rem > 0;
 
-        html += `
-          <div class="target-card ${isVacant ? 'has-vacant' : ''}">
-            <div class="target-card-top">
-              <span class="course-badge">${t.code}-${t.div} • ${t.type || '전공'}</span>
-              <button class="star-btn" onclick="uosToggleTarget('${t.code}', '${t.div}', '', '', '', '')">⭐</button>
-            </div>
-            <div class="course-name">${t.name}</div>
-            <div class="course-meta">교수: ${t.prof || '-'} | 학과: ${t.dept || '-'}</div>
-            <div class="vacant-badge ${isVacant ? 'vacant-alert' : 'vacant-closed'}">
-              ${isVacant ? `🎉 ${rem}석 빈자리 발생! (${cur}/${limit}명)` : `신청 ${cur} / 정원 ${limit}명 (마감)`}
-            </div>
-          </div>`;
-      });
-      container.innerHTML = html;
+      tbody.innerHTML = filtered.map(n => `
+        <tr>
+          <td><span class="badge badge-secondary">${n.category}</span></td>
+          <td style="font-weight: 600;">${n.title}</td>
+          <td>${(n.tags || []).map(t => `<span class="badge badge-special" style="margin-right: 2px;">${t}</span>`).join('')}</td>
+          <td style="color: var(--text-dim); font-size: 12px;">${n.date}</td>
+          <td><a href="${n.link}" target="_blank" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;">원문보기</a></td>
+        </tr>
+      `).join('');
     }
 
-    async function uosToggleMonitor() {
-      const endpoint = uosMonitoring ? '/api/uos/monitor/stop' : '/api/uos/monitor/start';
-      const res = await fetch(endpoint, { method: 'POST' });
+    // Master Controls
+    async function masterStart() {
+      const res = await fetch('/api/hub/start_all', {method: 'POST'});
       const data = await res.json();
-      if (data.success) {
-        uosMonitoring = !uosMonitoring;
-        updateUosUI();
-      }
+      alert(data.message);
+      updateHubStatus();
     }
 
-    function updateUosUI() {
-      const btn = document.getElementById('uosToggleBtn');
-      const pill = document.getElementById('uosStatusPill');
-      if (uosMonitoring) {
-        btn.className = 'btn-danger'; btn.innerHTML = '<span>⏹️ 수강 감시 중지</span>';
-        pill.className = 'service-pill pill-active'; pill.innerHTML = '<div class="pulse-dot"></div><span>수강신청: 감시 중</span>';
-      } else {
-        btn.className = 'btn-success'; btn.innerHTML = '<span>▶️ 수강신청 감시 시작</span>';
-        pill.className = 'service-pill pill-idle'; pill.innerHTML = '<div class="pulse-dot"></div><span>수강신청: 대기</span>';
-      }
-    }
-
-    function openUosSettings() { document.getElementById('uosModal').classList.add('active'); }
-    function closeUosSettings() { document.getElementById('uosModal').classList.remove('active'); }
-    async function uosSaveSettings() {
-      const payload = {
-        student_id: document.getElementById('uosStudentId').value.trim(),
-        password: document.getElementById('uosPassword').value.trim(),
-        discord: { enabled: true, webhook_url: document.getElementById('uosWebhook').value.trim() },
-        check_interval_seconds: parseInt(document.getElementById('uosInterval').value, 10) || 6,
-        year: document.getElementById('uosYearSelect').value,
-        semester: document.getElementById('uosSemSelect').value
-      };
-      await fetch('/api/uos/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-      alert('시립대 수강신청 설정이 저장되었습니다.');
-      closeUosSettings();
-    }
-    async function uosTestLogin() {
-      const msg = document.getElementById('uosLoginMsg');
-      msg.innerText = '검증 중...';
-      const res = await fetch('/api/uos/login_test', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          student_id: document.getElementById('uosStudentId').value.trim(),
-          password: document.getElementById('uosPassword').value.trim()
-        })
-      });
+    async function masterStop() {
+      const res = await fetch('/api/hub/stop_all', {method: 'POST'});
       const data = await res.json();
-      msg.innerText = data.success ? '✅ 로그인 성공!' : '❌ ' + data.message;
-    }
-    async function uosTestDiscord() {
-      const msg = document.getElementById('uosDiscordMsg');
-      msg.innerText = '발송 중...';
-      const res = await fetch('/api/uos/discord/test', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ webhook_url: document.getElementById('uosWebhook').value.trim() })
-      });
-      const data = await res.json();
-      msg.innerText = data.success ? '✅ 전송 성공!' : '❌ ' + data.message;
+      alert(data.message);
+      updateHubStatus();
     }
 
-    // ==================== HUB CONSOLIDATED POLL ====================
-    async function hubPoll() {
+    function clearConsole() {
+      document.getElementById('hubConsole').innerHTML = '[System] 콘솔이 정리되었습니다.';
+    }
+
+    // Status Polling
+    function startStatusPolling() {
+      updateHubStatus();
+      setInterval(updateHubStatus, 3000);
+    }
+
+    async function updateHubStatus() {
       try {
         const res = await fetch('/api/hub/status');
-        const data = await res.json();
+        const d = await res.json();
 
-        // KOBUS
-        kobusMonitoring = data.kobus.running;
-        updateKobusUI();
-        document.getElementById('hubKobusChecks').innerText = `${data.kobus.check_count.toLocaleString()}회 점검`;
-        document.getElementById('hubKobusInfo').innerText = `구간: ${data.kobus.departure_name} ➔ ${data.kobus.arrival_name} (${data.kobus.date})`;
-        const hubKBadge = document.getElementById('hubKobusBadge');
-        if (kobusMonitoring) {
-          hubKBadge.className = 'service-pill pill-active'; hubKBadge.innerText = '실시간 감시 중';
-        } else {
-          hubKBadge.className = 'service-pill pill-idle'; hubKBadge.innerText = '대기 중';
+        // 1. Kobus
+        const k = d.kobus || {};
+        const kPill = document.getElementById('kobusStatusPill');
+        kPill.className = `badge ${k.running ? 'badge-success' : 'badge-danger'}`;
+        kPill.innerText = k.running ? '가동 중' : '중지됨';
+        document.getElementById('kobusCheckCount').innerText = `${k.check_count || 0}회`;
+        document.getElementById('kobusStatusDesc').innerText = `구간: ${k.departure_name} ➔ ${k.arrival_name}`;
+        document.getElementById('kobusToggleBtn').className = `btn ${k.running ? 'btn-danger' : 'btn-success'}`;
+        document.getElementById('kobusToggleBtn').innerHTML = `<span>${k.running ? '🛑 감시 중지' : '▶️ 빈자리 감시 시작'}</span>`;
+
+        // 2. Train
+        const t = d.train || {};
+        const tPill = document.getElementById('trainStatusPill');
+        tPill.className = `badge ${t.running ? 'badge-success' : 'badge-danger'}`;
+        tPill.innerText = t.running ? '가동 중' : '중지됨';
+        document.getElementById('trainCheckCount').innerText = `${t.check_count || 0}회`;
+        document.getElementById('trainStatusDesc').innerText = `구간: ${t.departure_name} ➔ ${t.arrival_name}`;
+        document.getElementById('trainToggleBtn').className = `btn ${t.running ? 'btn-danger' : 'btn-success'}`;
+        document.getElementById('trainToggleBtn').innerHTML = `<span>${t.running ? '🛑 감시 중지' : '▶️ 취소표 감시 시작'}</span>`;
+
+        // 3. Cinema
+        const c = d.cinema || {};
+        const cPill = document.getElementById('cinemaStatusPill');
+        cPill.className = `badge ${c.running ? 'badge-success' : 'badge-danger'}`;
+        cPill.innerText = c.running ? '가동 중' : '중지됨';
+        document.getElementById('cinemaCheckCount').innerText = `${c.check_count || 0}회`;
+        document.getElementById('cinemaStatusDesc').innerText = `극장: ${c.theater_name} (${c.special_hall_only ? '특별관' : '전체관'})`;
+        document.getElementById('cinemaToggleBtn').className = `btn ${c.running ? 'btn-danger' : 'btn-success'}`;
+        document.getElementById('cinemaToggleBtn').innerHTML = `<span>${c.running ? '🛑 감시 중지' : '▶️ 좌석 감시 시작'}</span>`;
+
+        // 4. UOS Sugang
+        const u = d.uos_sugang || {};
+        const uPill = document.getElementById('uosStatusPill');
+        uPill.className = `badge ${u.running ? 'badge-success' : 'badge-danger'}`;
+        uPill.innerText = u.running ? '가동 중' : '중지됨';
+        document.getElementById('uosCheckCount').innerText = `${u.check_count || 0}회`;
+        document.getElementById('uosStatusDesc').innerText = `감시 대상: ${u.target_count || 0}개 과목`;
+        document.getElementById('uosToggleBtn').className = `btn ${u.running ? 'btn-danger' : 'btn-success'}`;
+        document.getElementById('uosToggleBtn').innerHTML = `<span>${u.running ? '🛑 수강 감시 중지' : '▶️ 수강 감시 시작'}</span>`;
+
+        // 5. UOS Campus
+        const cp = d.uos_campus || {};
+        const cpPill = document.getElementById('campusStatusPill');
+        cpPill.className = `badge ${cp.running ? 'badge-success' : 'badge-danger'}`;
+        cpPill.innerText = cp.running ? '가동 중' : '중지됨';
+        document.getElementById('campusCheckCount').innerText = `${cp.check_count || 0}회`;
+        document.getElementById('campusStatusDesc').innerText = `키워드: ${(cp.watch_keywords || []).slice(0, 3).join(', ')}`;
+
+        // Logs merge
+        const allLogs = [
+          ...(k.recent_logs || []).map(l => `[BUS] ${l}`),
+          ...(t.recent_logs || []).map(l => `[TRAIN] ${l}`),
+          ...(c.recent_logs || []).map(l => `[CINEMA] ${l}`),
+          ...(u.recent_logs || []).map(l => `[SUGANG] ${l}`),
+          ...(cp.recent_logs || []).map(l => `[CAMPUS] ${l}`)
+        ];
+        if (allLogs.length > 0) {
+          const consoleEl = document.getElementById('hubConsole');
+          consoleEl.innerHTML = allLogs.slice(-40).join('<br>');
+          consoleEl.scrollTop = consoleEl.scrollHeight;
         }
-
-        // UOS
-        uosMonitoring = data.uos.running;
-        updateUosUI();
-        document.getElementById('hubUosChecks').innerText = `${data.uos.check_count.toLocaleString()}회 점검`;
-        document.getElementById('hubUosInfo').innerText = `감시 대상: ${data.uos.target_count}개 과목`;
-        const hubUBadge = document.getElementById('hubUosBadge');
-        if (uosMonitoring) {
-          hubUBadge.className = 'service-pill pill-active'; hubUBadge.innerText = '실시간 감시 중';
-        } else {
-          hubUBadge.className = 'service-pill pill-idle'; hubUBadge.innerText = '대기 중';
-        }
-
-        // Combine logs
-        const kLogs = (data.kobus.recent_logs || []).map(l => `[KOBUS] ${l}`);
-        const uLogs = (data.uos.recent_logs || []).map(l => `[UOS] ${l}`);
-        const combined = [...kLogs, ...uLogs].slice(-100);
-
-        if (combined.length > 0) {
-          const cBox = document.getElementById('consoleBox');
-          cBox.innerHTML = combined.map(l => `<div class="console-line">${escapeHtml(l)}</div>`).join('');
-          cBox.scrollTop = cBox.scrollHeight;
-        }
-
-      } catch (e) {}
+      } catch (e) {
+        console.error('Status update error:', e);
+      }
     }
 
-    function escapeHtml(t) { return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
-    function clearConsole() { document.getElementById('consoleBox').innerHTML = '<div class="console-line">[로그 초기화됨]</div>'; }
+    // Modal Settings
+    function openSettings(type) {
+      currentModalTarget = type;
+      const modal = document.getElementById('settingsModal');
+      const title = document.getElementById('modalTitle');
+      const body = document.getElementById('modalBody');
+      modal.style.display = 'flex';
 
-    window.onload = () => {
-      kobusInit();
-      uosInit();
-      hubPoll();
-      setInterval(hubPoll, 2500);
-    };
+      if (type === 'kobus') {
+        title.innerText = '⚙️ KOBUS 고속버스 알림 설정';
+        const cfg = globalKobusData.config || {};
+        body.innerHTML = `
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label class="form-label">디스코드 웹훅 URL</label>
+            <input type="text" id="settingWebhook" value="${cfg.discord?.webhook_url || ''}" placeholder="https://discord.com/api/webhooks/...">
+          </div>
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label class="form-label">점검 주기 (초 단위)</label>
+            <input type="number" id="settingInterval" value="${cfg.check_interval_seconds || 6}">
+          </div>
+          <button class="btn btn-secondary" onclick="sendTestDiscord('kobus')">🔔 디스코드 테스트 알림 발송</button>
+        `;
+      } else if (type === 'train') {
+        title.innerText = '⚙️ KTX/SRT 열차 알림 설정';
+        const cfg = globalTrainData.config || {};
+        body.innerHTML = `
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label class="form-label">디스코드 웹훅 URL</label>
+            <input type="text" id="settingWebhook" value="${cfg.discord?.webhook_url || ''}" placeholder="https://discord.com/api/webhooks/...">
+          </div>
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label class="form-label">점검 주기 (초 단위)</label>
+            <input type="number" id="settingInterval" value="${cfg.check_interval_seconds || 6}">
+          </div>
+          <button class="btn btn-secondary" onclick="sendTestDiscord('train')">🔔 디스코드 테스트 알림 발송</button>
+        `;
+      } else if (type === 'cinema') {
+        title.innerText = '⚙️ 영화관 명당 알림 설정';
+        const cfg = globalCinemaData.config || {};
+        body.innerHTML = `
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label class="form-label">디스코드 웹훅 URL</label>
+            <input type="text" id="settingWebhook" value="${cfg.discord?.webhook_url || ''}" placeholder="https://discord.com/api/webhooks/...">
+          </div>
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label class="form-label">점검 주기 (초 단위)</label>
+            <input type="number" id="settingInterval" value="${cfg.check_interval_seconds || 10}">
+          </div>
+          <button class="btn btn-secondary" onclick="sendTestDiscord('cinema')">🔔 디스코드 테스트 알림 발송</button>
+        `;
+      } else if (type === 'uos') {
+        title.innerText = '⚙️ UOS 수강신청 계정 및 알림 설정';
+        const cfg = globalUosData.config || {};
+        body.innerHTML = `
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label class="form-label">시립대 학번 (포털 ID)</label>
+            <input type="text" id="settingUosId" value="${cfg.student_id || ''}">
+          </div>
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label class="form-label">비밀번호</label>
+            <input type="password" id="settingUosPw" value="${cfg.password || ''}">
+          </div>
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label class="form-label">디스코드 웹훅 URL</label>
+            <input type="text" id="settingWebhook" value="${cfg.discord?.webhook_url || ''}">
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary" onclick="testUosLogin()">🔑 로그인 검증</button>
+            <button class="btn btn-secondary" onclick="sendTestDiscord('uos')">🔔 테스트 알림</button>
+          </div>
+        `;
+      } else if (type === 'campus') {
+        title.innerText = '⚙️ 스마트 캠퍼스 키워드 알림 설정';
+        body.innerHTML = `
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label class="form-label">감시할 공지 키워드 (쉼표로 구분)</label>
+            <input type="text" id="settingCampusKeywords" value="장학금, 해외파견, 계절학기" placeholder="장학금, 해외파견, 계절학기">
+          </div>
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label class="form-label">디스코드 웹훅 URL</label>
+            <input type="text" id="settingWebhook" value="" placeholder="https://discord.com/api/webhooks/...">
+          </div>
+          <button class="btn btn-secondary" onclick="sendTestDiscord('campus')">🔔 테스트 공지 발송</button>
+        `;
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('settingsModal').style.display = 'none';
+    }
+
+    function closeSettings(e) {
+      if (e.target.id === 'settingsModal') closeModal();
+    }
+
+    async function sendTestDiscord(service) {
+      const hook = document.getElementById('settingWebhook').value;
+      const res = await fetch(`/api/${service}/discord/test`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ webhook_url: hook })
+      });
+      const d = await res.json();
+      alert(d.message);
+    }
+
+    async function testUosLogin() {
+      const id = document.getElementById('settingUosId').value;
+      const pw = document.getElementById('settingUosPw').value;
+      const res = await fetch('/api/uos/login_test', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ student_id: id, password: pw })
+      });
+      const d = await res.json();
+      alert(d.message);
+    }
+
+    async function saveSettingsModal() {
+      const hook = document.getElementById('settingWebhook')?.value;
+      const interval = parseInt(document.getElementById('settingInterval')?.value || '10');
+
+      if (currentModalTarget === 'kobus') {
+        await fetch('/api/kobus/config', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            check_interval_seconds: interval,
+            discord: { webhook_url: hook, mention: '@everyone' }
+          })
+        });
+      } else if (currentModalTarget === 'train') {
+        await fetch('/api/train/config', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            check_interval_seconds: interval,
+            discord: { webhook_url: hook, mention: '@everyone' }
+          })
+        });
+      } else if (currentModalTarget === 'cinema') {
+        await fetch('/api/cinema/config', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            check_interval_seconds: interval,
+            discord: { webhook_url: hook, mention: '@everyone' }
+          })
+        });
+      } else if (currentModalTarget === 'uos') {
+        const id = document.getElementById('settingUosId').value;
+        const pw = document.getElementById('settingUosPw').value;
+        await fetch('/api/uos/config', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            student_id: id,
+            password: pw,
+            discord: { webhook_url: hook, mention: '@everyone' }
+          })
+        });
+      } else if (currentModalTarget === 'campus') {
+        const kws = document.getElementById('settingCampusKeywords').value.split(',').map(s => s.trim()).filter(Boolean);
+        await fetch('/api/campus/config', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            watch_keywords: kws,
+            discord: { webhook_url: hook, mention: '@everyone' }
+          })
+        });
+      }
+
+      alert('설정이 저장되었습니다.');
+      closeModal();
+    }
   </script>
 </body>
 </html>

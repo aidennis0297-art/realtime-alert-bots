@@ -1,128 +1,155 @@
-# 🚀 Real-time Alert Bots (실시간 알리미 봇 모음 & 통합 허브)
+# 🚀 Realtime Alert Hub 2.0 (실시간 알리미 5대 올인원 포털 허브 & 양방향 디스코드 봇)
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
   <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
   <img src="https://img.shields.io/badge/Architecture-Zero--Dependency-success?style=for-the-badge" alt="Zero-Dependency" />
+  <img src="https://img.shields.io/badge/Discord-2--Way_Bot-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord Bot" />
   <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License" />
 </p>
 
-고속버스 취소표, 대학교 수강신청 빈자리 등 **실시간 데이터 변동을 24시간 감시하고 디스코드 3연속 버스트 푸시 알림(@everyone)을 발송하는 경량 모니터링 자동화 봇 & 올인원 통합 포털**입니다.
+고속버스 취소표, KTX/SRT 열차, 메가박스 특별관 명당석, 대학교 수강신청 빈자리, 도서관 열람실 및 장학/해외파견 공지사항까지 **실시간 데이터 변동을 24시간 감시하고 디스코드 3연속 버스트 푸시 알림(@everyone) 및 스마트폰 양방향 원격 제어를 제공하는 올인원 관제 포털 허브**입니다.
 
 ---
 
-## 🌟 올인원 통합 포털 허브 (Alert Hub)
+## 🌟 올인원 통합 포털 허브 (Alert Hub 2.0)
 
-이제 고속버스와 수강신청 알리미를 각각 실행할 필요 없이, **단 하나의 웹 화면(`http://localhost:8000`)에서 탭으로 전환하며 전체를 한 번에 관리**할 수 있습니다.
+개별 스크립트를 따로 띄울 필요 없이, **단 하나의 통합 웹 화면(`http://localhost:8000`)에서 5대 알리미를 한 번에 제어**할 수 있습니다.
 
 ```mermaid
 graph TD
-    User([사용자 브라우저 - http://localhost:8000]) <-->|통합 대시보드| HubServer[Alert Hub Server - hub_server.py]
+    User([사용자 브라우저 - http://localhost:8000]) <-->|통합 대시보드 SPA| HubServer[Alert Hub Server - hub_server.py]
+    DiscordUser([스마트폰 디스코드 앱]) <-->|양방향 명령어 !버스| DiscordBot[Kobus Discord Bot - kobus_discord_bot.py]
 
-    subgraph Docker Container or Local Server
-        HubServer --> HubUI[Alert Hub Web UI - SPA Tabs]
-        HubServer --> KobusController[KOBUS 고속버스 엔진]
-        HubServer --> UosController[UOS 수강신청 엔진]
+    subgraph All-in-One Architecture
+        HubServer --> KobusEngine[1. KOBUS 고속버스 엔진]
+        HubServer --> TrainEngine[2. KTX / SRT 열차 엔진]
+        HubServer --> CinemaEngine[3. 메가박스 특별관 엔진]
+        HubServer --> SugangEngine[4. UOS 수강신청 엔진]
+        HubServer --> CampusEngine[5. UOS 스마트캠퍼스 엔진]
+        DiscordBot <--> KobusEngine
     end
 
-    KobusController <-->|HTTPS 배차 조회| KobusNet[KOBUS 전산망]
-    UosController <-->|HTTPS 잔여석 조회| UosNet[대학 수강신청 서버]
+    KobusEngine <-->|전국 224개 터미널 6대 권역| KobusNet[KOBUS 전산망]
+    TrainEngine <-->|SRT NetFunnel 전산망 33개역| SrailNet[SRT / Korail 망]
+    CinemaEngine <-->|전국 114개 극장 8대 권역| MegaboxNet[메가박스 전산망]
+    SugangEngine <-->|3,026개 개설과목 실시간| SugangNet[대학 수강신청망]
+    CampusEngine <-->|8개 열람실 + 4개 RSS| CampusNet[도서관 & 공지 포털]
 
-    KobusController -->|빈자리 3연타 푸시| DiscordWebhook[Discord Webhook (@everyone)]
-    UosController -->|잔여석 3연타 푸시| DiscordWebhook
+    KobusEngine -->|빈자리 3연타 푸시| DiscordWebhook[Discord Webhook (@everyone)]
+    TrainEngine -->|취소표 3연타 푸시| DiscordWebhook
+    CinemaEngine -->|명당석 3연타 푸시| DiscordWebhook
+    SugangEngine -->|결원 3연타 푸시| DiscordWebhook
+    CampusEngine -->|키워드 공지 푸시| DiscordWebhook
 ```
-
-### 🎯 Alert Hub 주요 기능
-- **단일 포트 통합 (`8000`)**: `http://localhost:8000` 접속만으로 모든 알리미 제어
-- **모던 SPA 탭 네비게이션**:
-  - 🚌 **KOBUS 고속버스 탭**: 전국 224개 터미널 연동, 출발/도착지 및 날짜/시간대 선택, 실시간 배차표 조회, 빈자리 감시 On/Off
-  - 🎓 **UOS 수강신청 탭**: 개설년도/학기 선택, 단과대/학과/이수구분/학년 다차원 필터, 실시간 검색, 관심 과목 별표(⭐) Watchlist 등록/해제, 잔여석 감시 On/Off
-  - 📊 **통합 현황 & 콘솔 탭**: 전체 서비스 가동 현황, 누적 점검 횟수, 실시간 통합 로그 스트림 한눈에 모니터링
-- **Zero-Dependency**: `pip install` 불필요! Python 표준 라이브러리(`http.server`, `urllib`, `threading`, `json`)만으로 구동
 
 ---
 
-## 🐳 Docker & Cloud 원클릭 24/7 배포
+## 🎯 5대 실시간 알리미 서비스 핵심 기능
 
-AWS EC2, GCP Compute Engine, Oracle Cloud, 홈서버 등 도커 환경이 갖춰진 곳이라면 **단 한 줄의 명령어로 24시간 무중단 가동**할 수 있습니다.
+### 1. 🚌 KOBUS 고속버스 취소표 알리미 & 📱 스마트폰 양방향 챗봇
+- **전국 224개 터미널 6대 권역 분류**: 서울, 경기/인천, 강원, 대전/충청/세종, 광주/전라, 부산/대구/경상
+- **다인승 연석 지원 (`min_seats`)**: 1석, 2석(연석), 3석, 4석 이상 필터
+- **스마트폰 양방향 제어 디스코드 봇 (`kobus_discord_bot.py`)**:
+  - 외출 중에도 스마트폰 디스코드 채팅창에 `!버스`만 치면 실시간 배차 즉시 조회
+  - `!버스 시작 서울 대전` 입력 시 원격으로 백그라운드 24시간 감시 데몬 가동
+  - `!버스 중지`, `!버스 상태`, `!터미널 서울`, `!도움말` 등 완벽 원격 제어 지원
 
+### 2. 🚄 KTX / SRT 열차 취소표 알리미 (`train-seat-alert`)
+- **전국 33개 주요 정차역 5대 권역 분류**: 서울/수도권(수서, 동탄, 평택지제), 대전/충청(천안아산, 오송, 대전, 공주), 대구/경북(동대구, 서대구, 포항), 부산/경남(부산, 울산, 창원, 마산, 진주), 광주/전라(광주송정, 전주, 여수EXPO, 목포 등)
+- **SRT 모바일 NetFunnel 통신망 직통**: 초고속 배차 및 실시간 취소표 조회
+- **일반실 & 특실/우등실 분리 감시**: 최소 잔여석 필터 지원 및 취소표 감지 시 디스코드 푸시 발송
+
+### 3. 🎬 메가박스 영화관 특별관 & 명당 잔여석 알리미 (`cinema-seat-alert`)
+- **전국 114개 극장 8개 광역시도 권역 분류**: 서울(18개), 경기(32개), 인천(7개), 대전/충청(16개), 부산/경상(25개), 광주/전라(9개), 강원(4개), 제주(3개)
+- **특별관 전용 필터**: 돌비 시네마(Dolby Cinema), Dolby Atmos, Laser, Recliner, Comfort 등 프리미엄 상영관 집중 감시
+- **인기 개봉작 명당 잔여석 감시**: 명당 취소표 및 최소 좌석수 기준 필터링 지원
+
+### 4. 🎓 UOS 수강신청 빈자리 알리미 (`uos-sugang-alert`)
+- **2026학년도 3,026개 개설과목 연동**: 년도/학기 선택, 단과대/학과/이수구분/학년 다차원 필터링
+- **원클릭 별표(⭐) Watchlist**: 감시할 과목을 담아두면 24시간 실시간 결원 감지 및 3연타 디스코드 발송
+
+### 5. 🏛️ UOS 스마트 캠퍼스 종합 관제
+- **중앙/건축/경영도서관 8개 열람실 실시간 좌석**: 열람실별 총 좌석수, 사용 좌석, 잔여석, 실시간 점유율 프로그레스 바 제공
+- **학사/장학/해외파견 공지사항 모아보기**:
+  - 대학 RSS 4대 피드(학사, 장학, 일반, 뉴스) 로컬 캐시 및 실시간 동기화
+  - 스마트 태그 자동 분류: `#장학금`, `#해외파견`, `#교환학생`, `#계절학기`, `#수강신청`, `#인턴십`, `#근로장학생`, `#휴복학`
+  - 관심 키워드 백그라운드 실시간 감시 & 디스코드 알림 발송
+
+---
+
+## 🤖 KOBUS 스마트폰 디스코드 양방향 챗봇 사용법
+
+외부에 있거나 컴퓨터를 켜지 않아도, **스마트폰 디스코드 앱에서 채팅으로 바로 실시간 조회 및 모니터링을 제어**할 수 있습니다.
+
+### 1. 디스코드 봇 토큰 발급 (무료 1분)
+1. [Discord Developer Portal](https://discord.com/developers/applications) 접속 후 **New Application** 생성
+2. 좌측 메뉴 **Bot** 클릭 ➔ **Reset Token** 클릭하여 토큰 복사
+3. **Privileged Gateway Intents** 섹션에서 **Message Content Intent** 체크 (ON)
+4. 좌측 **OAuth2 ➔ URL Generator** ➔ Scopes: `bot`, Bot Permissions: `Send Messages`, `View Channels`, `Read Message History`, `Add Reactions` 선택 후 생성된 링크로 내 서버에 봇 초대
+
+### 2. 설정 파일 (`config.json`) 입력
+`kobus-seat-alert/config.json` (또는 `config.example.json` 복사):
+```json
+{
+  "discord_bot": {
+    "enabled": true,
+    "bot_token": "여기에_발급받은_BOT_TOKEN_입력",
+    "channel_id": "명령어를_입력할_채널_ID_입력",
+    "prefix": "!"
+  }
+}
+```
+
+### 3. 챗봇 실행
+- **Windows**: `kobus-seat-alert/run_discord_bot.bat` 더블 클릭!
+- **Mac / Linux**:
+  ```bash
+  cd kobus-seat-alert
+  python3 kobus_discord_bot.py
+  ```
+
+### 4. 사용 가능한 명령어
+| 명령어 | 설명 | 예시 |
+|---|---|---|
+| `!버스` | 현재 설정된 노선의 실시간 잔여석 즉시 조회 | `!버스` |
+| `!버스 [출발] [도착] [날짜]` | 특정 노선 및 날짜 배차 즉시 조회 | `!버스 서울 부산 20260925` |
+| `!버스 시작` | 현재 설정된 노선으로 24시간 빈자리 감시 시작 | `!버스 시작` |
+| `!버스 시작 [출발] [도착]` | 노선 변경 후 즉시 백그라운드 감시 시작 | `!버스 시작 서울 대전` |
+| `!버스 중지` | 가동 중인 실시간 빈자리 감시 데몬 중지 | `!버스 중지` |
+| `!버스 상태` | 현재 감시 상태 및 누적 점검 횟수 확인 | `!버스 상태` |
+| `!터미널 [키워드]` | 전국 224개 터미널 이름 및 코드 검색 | `!터미널 광주`, `!터미널 센트럴` |
+| `!도움말` | 전체 명령어 안내 임베드 출력 | `!help` |
+
+---
+
+## 💻 통합 허브 실행 방법
+
+### Windows 원클릭 실행
+- 최상위 폴더의 `run_hub.bat`을 더블 클릭하면 포트 `8000`에서 통합 허브가 실행되며 웹 브라우저(`http://localhost:8000`)가 자동으로 열립니다.
+
+### Docker & Cloud 원클릭 24/7 배포
 ```bash
-# 1. 저장소 클론 및 이동
-git clone https://github.com/aidennis0297-art/realtime-alert-bots.git
-cd realtime-alert-bots
-
-# 2. Docker Compose 원클릭 실행 (백그라운드 가동)
 docker-compose up -d
-
-# 3. 가동 상태 및 로그 확인
-docker-compose ps
-docker-compose logs -f
-
-# 4. 종료 시
-docker-compose down
 ```
-> 가동 후 웹 브라우저에서 `http://서버IP:8000`에 접속하면 즉시 통합 대시보드를 사용할 수 있습니다. (한국 시간 `Asia/Seoul` 자동 동기화)
-
----
-
-## 💻 로컬 PC 원클릭 실행 (Windows / Mac / Linux)
-
-### Windows
-- 폴더 내 `run_hub.bat`을 더블 클릭하면 검은 콘솔창과 함께 웹 브라우저(`http://localhost:8000`)가 자동으로 열립니다.
-
-### Mac / Linux
-```bash
-python3 hub_server.py
-```
+> 브라우저에서 `http://서버IP:8000`에 접속하여 원격으로 5대 알리미를 모두 관리할 수 있습니다.
 
 ---
 
 ## 📱 [디스코드 세팅 및 스마트폰 알림 100% 수신 가이드 (필독!)](./DISCORD_SETUP_GUIDE.md)
-
 빈자리 발생 즉시 스마트폰 잠금화면으로 **1.5초 간격 3연타 진동 푸시(@everyone)**를 받으려면 디스코드 웹훅 연동이 필수입니다.
 - **[👉 디스코드 웹훅 생성 & 스마트폰 진동/소리 알림 완벽 설정 가이드 바로가기](./DISCORD_SETUP_GUIDE.md)**
-  1. 디스코드 무료 개인 서버 및 `#알림` 채널 생성
-  2. 웹훅(Webhook) URL 발급 및 복사
-  3. 스마트폰(아이폰/갤럭시) `@everyone` 진동 및 잠금화면 알림 허용 설정
-  4. 웹 GUI `[⚙️ 알림 설정]`에서 원클릭 테스트 발송
 
 ---
 
-## 📦 포함된 개별 프로젝트 (독립 실행 지원)
+## 💡 Zero-Dependency 아키텍처 철학
 
-통합 허브뿐만 아니라 필요에 따라 각 프로젝트 폴더에서 **독립된 웹 GUI 대시보드**로도 각각 실행할 수 있습니다.
-
-### 1. 🚌 [kobus-seat-alert](./kobus-seat-alert) (포트 8081)
-- **KOBUS 고속버스 실시간 잔여 좌석 감지 및 3연타 알리미**
-- **독립 웹 GUI**: `run_gui.bat` 실행 시 `http://localhost:8081` 오픈
-- **전국 노선 연동**: 224개 터미널 및 1,240개 노선 자동 연동, 실시간 배차 시간표 조회
-- **4중 입체 알림**: 🔊 PC 사운드 비프음 + 🖥️ 화면 팝업 + 🌐 KOBUS 예매창 자동 오픈 + 📱 디스코드 3연타 모바일 푸시(@everyone)
-
-### 2. 🎓 [uos-sugang-alert](./uos-sugang-alert) (포트 8080)
-- **서울시립대학교(UOS) 수강신청 실시간 빈자리 알리미 & 웹 GUI 대시보드**
-- **독립 웹 GUI**: `run_gui.bat` 실행 시 `http://localhost:8080` 오픈
-- **동적 과목 탐색**: 년도/학기 선택 조회, 120+개 학과/학부 필터, 이수구분(전필/전선/교필/교선 등), 학년(1~4), 실시간 통합 검색
-- **관심 과목 별표(⭐) Watchlist**: 테이블에서 ⭐ 클릭 시 실시간 감시 대상으로 등록/해제
-- **3연속 모바일 푸시 알림**: 빈자리 발생 즉시 1.5초 간격 3회 연속 디스코드 푸시(@everyone)
-- *※ 대학 학칙 준수를 위해 순수 "알림" 전용으로 제작 (자동 신청 매크로 미포함)*
-
-### 3. 🛠️ [AUTOMATION_BLUEPRINT.md](./AUTOMATION_BLUEPRINT.md)
-- **클라우드 24/7 자동 모니터링 시스템 아키텍처 청사진 & AI 프롬프트 명세서**
-- GCP 한국 리전(`asia-northeast3`) + Python 표준 라이브러리 + systemd 데몬 + 디스코드 푸시 파이프라인
-- 다른 티켓팅/예매 사이트로 시스템을 확장할 때 ChatGPT, Claude 등에 바로 복사해서 사용할 수 있는 표준 프롬프트 제공
-
----
-
-## 💡 공통 아키텍처 핵심 요약
-
-| 구성 요소 | 적용 기술 / 전략 | 장점 |
-|---|---|---|
-| **의존성 (Dependency)** | Python 3 내장 라이브러리만 사용 (`urllib`, `http.server`, `ssl`, `json`, `threading`) | `pip install` 불필요, 25MB 이하 극경량 메모리 점유 |
-| **인터페이스 (UI)** | 모던 다크 테마 SPA 웹 대시보드 | 무거운 GUI 패키지 없이 브라우저에서 직관적인 제어 (포트 8000 통합 & 8080, 8081 독립 지원) |
-| **컨테이너 (Docker)** | Python 3.11-slim 베이스 + docker-compose | `docker-compose up -d` 한 줄로 어디서나 24시간 무중단 가동 |
-| **보안 통신 (SSL)** | `DEFAULT@SECLEVEL=1` | 구형 레거시 전산망 및 관공서 시스템 SSL 핸드셰이크 호환 |
-| **알림 (Notification)** | 디스코드 웹훅 3연타 버스트 전송 | 화면 꺼짐/잠금 상태에서도 모바일 진동/소리로 확실한 인지 |
-| **자가 복구 (Self-healing)** | 세션 자동 갱신 & 재시작 보장 (`restart: always`) | 예기치 않은 세션 만료나 서버 재부팅 시 자동 부활 |
+| 항목 | 설계 내용 |
+|---|---|
+| **외부 패키지** | **0개** (`pip install` 불필요, Python 표준 라이브러리 `urllib`, `http.server`, `threading`, `json`만 사용) |
+| **메모리 점유** | 전체 5대 서비스 통합 가동 시에도 약 **35MB** 내외의 초경량 리소스 점유 |
+| **디스코드 봇** | 무거운 `discord.py`나 WebSocket 라이브러리 없이 순수 REST API 롱폴링으로 구현 |
+| **한글 인코딩** | Windows 환경 한글 깨짐 방지를 위해 배치 파일 `CP949` 완벽 대응 |
 
 ---
 

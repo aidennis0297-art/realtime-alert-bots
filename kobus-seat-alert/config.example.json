@@ -6,6 +6,7 @@
   "date": "20260923",
   "min_time": "14:00",
   "max_time": "23:59",
+  "min_seats": 1,
   "check_interval_seconds": 6,
   "sound_alert": true,
   "popup_alert": true,
@@ -18,5 +19,11 @@
   "discord": {
     "enabled": true,
     "webhook_url": "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
+  },
+  "discord_bot": {
+    "enabled": true,
+    "bot_token": "YOUR_DISCORD_BOT_TOKEN",
+    "channel_id": "YOUR_DISCORD_CHANNEL_ID",
+    "prefix": "!"
   }
 }

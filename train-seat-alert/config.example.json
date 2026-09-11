@@ -1,0 +1,16 @@
+{
+  "departure_station": "0551",
+  "departure_name": "수서",
+  "arrival_station": "0020",
+  "arrival_name": "부산",
+  "date": "20260925",
+  "min_time": "06:00",
+  "max_time": "23:59",
+  "train_type": "ALL",
+  "min_seats": 1,
+  "check_interval_seconds": 6,
+  "discord": {
+    "webhook_url": "https://discord.com/api/webhooks/YOUR_WEBHOOK_URL_HERE",
+    "mention": "@everyone"
+  }
+}
