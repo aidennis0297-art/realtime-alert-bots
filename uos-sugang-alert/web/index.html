@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>서울시립대학교 수강신청 실시간 알리미</title>
+  <style>
+    :root {
+      --bg-main: #0f172a;
+      --bg-card: #1e293b;
+      --bg-card-hover: #273549;
+      --bg-input: #0f172a;
+      --border-color: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --emerald: #10b981;
+      --emerald-dark: #065f46;
+      --rose: #f43f5e;
+      --amber: #f59e0b;
+      --indigo: #6366f1;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+    
+    /* Header */
+    header {
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky; top: 0; z-index: 100;
+      padding: 12px 24px;
+      display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .logo-badge { font-size: 24px; }
+    .brand-title { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+    .brand-sub { font-size: 12px; color: var(--text-muted); }
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600;
+    }
+    .status-online { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .status-offline { background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3); }
+    .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+
+    .header-center { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+
+    select, input[type="text"], input[type="password"], input[type="number"] {
+      background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-main);
+      padding: 8px 12px; border-radius: 8px; font-size: 13px; outline: none; transition: border-color 0.2s;
+    }
+    select:focus, input:focus { border-color: var(--primary); }
+
+    button {
+      cursor: pointer; border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
+      padding: 8px 14px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;
+    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+    .btn-success { background: var(--emerald); color: white; }
+    .btn-success:hover:not(:disabled) { background: #059669; }
+    .btn-danger { background: var(--rose); color: white; }
+    .btn-danger:hover:not(:disabled) { background: #e11d48; }
+    .btn-secondary { background: #334155; color: var(--text-main); }
+    .btn-secondary:hover:not(:disabled) { background: #475569; }
+    .btn-warning { background: var(--amber); color: #000; }
+    .btn-warning:hover:not(:disabled) { background: #d97706; }
+
+    /* Layout */
+    .container { max-width: 1440px; margin: 0 auto; padding: 20px; width: 100%; display: flex; flex-direction: column; gap: 20px; flex: 1; }
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .card-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .card-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+
+    /* Watchlist Section */
+    .watchlist-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;
+    }
+    .target-card {
+      background: #182234; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px;
+      display: flex; flex-direction: column; gap: 8px; position: relative; transition: transform 0.15s, border-color 0.15s;
+    }
+    .target-card:hover { transform: translateY(-2px); border-color: #475569; }
+    .target-card.has-vacant {
+      border-color: #34d399; background: linear-gradient(135deg, #182234 0%, rgba(16, 185, 129, 0.12) 100%);
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
+    }
+    .target-card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .course-badge { font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 700; background: #334155; color: #cbd5e1; }
+    .course-name { font-size: 15px; font-weight: 700; color: #fff; margin-top: 4px; word-break: keep-all; }
+    .course-meta { font-size: 12px; color: var(--text-muted); }
+    .star-btn { background: transparent; border: none; font-size: 18px; padding: 2px 6px; cursor: pointer; color: #facc15; }
+    .star-btn:hover { transform: scale(1.2); }
+    .unstar-btn { color: #64748b; }
+    .unstar-btn:hover { color: #facc15; }
+    .vacant-badge {
+      font-size: 13px; font-weight: 700; padding: 4px 8px; border-radius: 6px; text-align: center; margin-top: 4px;
+    }
+    .vacant-alert { background: #10b981; color: white; animation: alert-glow 1s infinite alternate; }
+    @keyframes alert-glow { from { opacity: 0.85; } to { opacity: 1; box-shadow: 0 0 10px #10b981; } }
+    .vacant-closed { background: #334155; color: #94a3b8; }
+    .empty-placeholder { text-align: center; padding: 32px 16px; color: var(--text-muted); font-size: 14px; border: 1px dashed var(--border-color); border-radius: 8px; }
+
+    /* Filters Bar */
+    .filter-bar {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; background: #151f30; padding: 12px; border-radius: 10px;
+    }
+    .search-input-wrap { grid-column: span 2; position: relative; }
+    @media (max-width: 768px) { .search-input-wrap { grid-column: span 1; } }
+    .search-input-wrap input { width: 100%; padding-left: 32px; }
+    .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--text-muted); }
+
+    /* Table */
+    .table-container { overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+    th { background: #151f30; color: #cbd5e1; font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+    td { padding: 9px 12px; border-bottom: 1px solid rgba(51, 65, 85, 0.6); color: #e2e8f0; vertical-align: middle; }
+    tr:hover td { background: var(--bg-card-hover); }
+    .badge-type { font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600; display: inline-block; }
+    .type-mjr-req { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); } /* 전필 */
+    .type-mjr-opt { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); } /* 전선 */
+    .type-ge-req { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); } /* 교필 */
+    .type-ge-opt { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); } /* 교선 */
+    .type-etc { background: rgba(148, 163, 184, 0.2); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.4); }
+
+    /* Pagination */
+    .pagination-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding-top: 4px; }
+    .page-controls { display: flex; align-items: center; gap: 6px; }
+
+    /* Console */
+    .console-box {
+      background: #090d16; border: 1px solid #1e293b; border-radius: 8px; padding: 12px;
+      height: 160px; overflow-y: auto; font-family: "Cascadia Code", Consolas, "Courier New", monospace;
+      font-size: 12px; color: #a5f3fc; line-height: 1.6;
+    }
+    .console-line { word-break: break-all; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
+      display: none; justify-content: center; align-items: center; z-index: 200; padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-content {
+      background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px;
+      width: 100%; max-width: 520px; padding: 24px; display: flex; flex-direction: column; gap: 18px;
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; }
+    .modal-title { font-size: 17px; font-weight: 700; }
+    .close-btn { background: transparent; color: var(--text-muted); font-size: 20px; padding: 4px 8px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 12px; font-weight: 600; color: #cbd5e1; }
+    .form-row { display: flex; gap: 8px; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header>
+    <div class="header-left">
+      <span class="logo-badge">🎓</span>
+      <div>
+        <div class="brand-title">서울시립대 수강신청 실시간 알리미</div>
+        <div class="brand-sub">sugang.uos.ac.kr 실시간 정원 감지 시스템</div>
+      </div>
+      <div id="connectionStatus" class="status-badge status-online">
+        <div class="pulse-dot"></div>
+        <span>온라인</span>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <select id="yearSelect">
+        <option value="2026" selected>2026학년도</option>
+        <option value="2025">2025학년도</option>
+        <option value="2024">2024학년도</option>
+      </select>
+      <select id="semSelect">
+        <option value="CCMN031.20" selected>2학기</option>
+        <option value="CCMN031.10">1학기</option>
+        <option value="CCMN031.11">여름계절</option>
+        <option value="CCMN031.21">겨울계절</option>
+      </select>
+      <button id="loadCoursesBtn" class="btn-secondary" onclick="loadCourses(true)">
+        <span>🔄 과목 불러오기</span>
+      </button>
+    </div>
+
+    <div class="header-right">
+      <button id="toggleMonitorBtn" class="btn-success" onclick="toggleMonitor()">
+        <span>▶️ 모니터링 시작</span>
+      </button>
+      <button class="btn-secondary" onclick="openModal()">
+        <span>⚙️ 설정</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+    
+    <!-- Watchlist Section -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>⭐ 감시 대상 과목 (Watchlist)</span>
+          <span id="targetCountBadge" class="course-badge">0개 과목</span>
+        </div>
+        <div id="monitorStateText" style="font-size: 13px; color: var(--text-muted);">
+          모니터링 대기 중
+        </div>
+      </div>
+
+      <div id="watchlistContainer" class="watchlist-grid">
+        <div class="empty-placeholder">
+          아래 전체 과목 목록에서 원하는 과목의 <strong>⭐ 별표</strong>를 클릭하면 이곳에 등록되어 실시간 빈자리를 감시합니다.
+        </div>
+      </div>
+    </div>
+
+    <!-- Course Explorer Section -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>📚 전체 개설 과목 탐색 및 검색</span>
+          <span id="totalCoursesBadge" class="course-badge">0개 과목</span>
+        </div>
+        <button class="btn-secondary" style="font-size: 12px; padding: 4px 10px;" onclick="resetFilters()">
+          필터 초기화
+        </button>
+      </div>
+
+      <!-- Filters Bar -->
+      <div class="filter-bar">
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="과목명, 담당교수, 과목코드(5자리) 검색..." oninput="onSearchChanged()">
+        </div>
+        
+        <select id="deptFilter" onchange="onFilterChanged()">
+          <option value="">전체 학과/학부</option>
+        </select>
+
+        <select id="typeFilter" onchange="onFilterChanged()">
+          <option value="">전체 이수구분</option>
+          <option value="전공필수">전공필수</option>
+          <option value="전공선택">전공선택</option>
+          <option value="교양필수">교양필수</option>
+          <option value="교양선택">교양선택</option>
+          <option value="기초선택">기초선택</option>
+          <option value="교직">교직</option>
+        </select>
+
+        <select id="gradeFilter" onchange="onFilterChanged()">
+          <option value="">전체 학년</option>
+          <option value="1">1학년</option>
+          <option value="2">2학년</option>
+          <option value="3">3학년</option>
+          <option value="4">4학년</option>
+        </select>
+      </div>
+
+      <!-- Table -->
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 44px; text-align: center;">관심</th>
+              <th style="width: 90px;">코드-분반</th>
+              <th style="width: 80px;">이수구분</th>
+              <th>과목명</th>
+              <th style="width: 50px;">학점</th>
+              <th style="width: 50px;">학년</th>
+              <th style="width: 130px;">개설학과</th>
+              <th style="width: 90px;">담당교수</th>
+              <th style="width: 140px;">강의시간/강의실</th>
+              <th style="width: 90px; text-align: center;">신청/정원</th>
+              <th style="width: 100px; text-align: center;">잔여석 현황</th>
+            </tr>
+          </thead>
+          <tbody id="courseTableBody">
+            <tr>
+              <td colspan="11" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                상단의 <strong>[🔄 과목 불러오기]</strong> 버튼을 누르면 전체 개설 과목이 로드됩니다.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-bar">
+        <div style="font-size: 13px; color: var(--text-muted);" id="pageInfoText">
+          0개 중 0~0 표시
+        </div>
+        <div class="page-controls">
+          <button class="btn-secondary" style="padding: 4px 10px;" onclick="changePage(1)">«</button>
+          <button class="btn-secondary" style="padding: 4px 10px;" onclick="changePage(currentPage - 1)">‹</button>
+          <span style="font-size: 13px; font-weight: 600; padding: 0 8px;" id="currentPageNum">1 / 1</span>
+          <button class="btn-secondary" style="padding: 4px 10px;" onclick="changePage(currentPage + 1)">›</button>
+          <button class="btn-secondary" style="padding: 4px 10px;" onclick="changePage(maxPage)">»</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Console Section -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>📟 실시간 점검 로그 (Console)</span>
+        </div>
+        <button class="btn-secondary" style="font-size: 11px; padding: 4px 8px;" onclick="clearConsole()">
+          로그 비우기
+        </button>
+      </div>
+      <div id="consoleBox" class="console-box">
+        <div class="console-line">[시스템 준비 완료] 상단에서 모니터링을 시작할 수 있습니다.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">⚙️ 시스템 및 알림 설정</div>
+        <button class="close-btn" onclick="closeModal()">✕</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">서울시립대 포털 학번</label>
+        <input type="text" id="cfgStudentId" placeholder="예: 2024000000">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">포털 비밀번호</label>
+        <div class="form-row">
+          <input type="password" id="cfgPassword" placeholder="비밀번호" style="flex: 1;">
+          <button class="btn-secondary" type="button" onclick="testLogin()">🔑 로그인 검증</button>
+        </div>
+        <span id="loginStatusMsg" style="font-size: 12px;"></span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">디스코드 웹훅 URL (모바일 3연타 알림용)</label>
+        <div class="form-row">
+          <input type="text" id="cfgWebhook" placeholder="https://discord.com/api/webhooks/..." style="flex: 1;">
+          <button class="btn-secondary" type="button" onclick="testDiscord()">🔔 테스트 발송</button>
+        </div>
+        <span id="discordStatusMsg" style="font-size: 12px;"></span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">모니터링 점검 주기 (초 단위, 권장: 5~7초)</label>
+        <input type="number" id="cfgInterval" min="3" max="60" value="6">
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
+        <button class="btn-secondary" onclick="closeModal()">취소</button>
+        <button class="btn-primary" onclick="saveSettings()">저장하기</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allCourses = [];
+    let filteredCourses = [];
+    let targetCourses = [];
+    let isMonitoring = false;
+    let currentPage = 1;
+    const pageSize = 50;
+    let maxPage = 1;
+
+    async function init() {
+      await loadConfig();
+      await loadCourses(false);
+      pollStatus();
+      setInterval(pollStatus, 2500);
+    }
+
+    async function loadConfig() {
+      try {
+        const res = await fetch('/api/config');
+        const data = await res.json();
+        targetCourses = data.target_courses || [];
+        document.getElementById('cfgStudentId').value = data.student_id || '';
+        document.getElementById('cfgPassword').value = data.password || '';
+        document.getElementById('cfgWebhook').value = (data.discord && data.discord.webhook_url) || '';
+        document.getElementById('cfgInterval').value = data.check_interval_seconds || 6;
+        if (data.year) document.getElementById('yearSelect').value = data.year;
+        if (data.semester) document.getElementById('semSelect').value = data.semester;
+        renderWatchlist();
+      } catch (e) {
+        logToConsole(`[설정 로드 실패] ${e}`);
+      }
+    }
+
+    async function saveSettings() {
+      const payload = {
+        student_id: document.getElementById('cfgStudentId').value.trim(),
+        password: document.getElementById('cfgPassword').value.trim(),
+        discord: {
+          enabled: true,
+          webhook_url: document.getElementById('cfgWebhook').value.trim()
+        },
+        check_interval_seconds: parseInt(document.getElementById('cfgInterval').value, 10) || 6,
+        year: document.getElementById('yearSelect').value,
+        semester: document.getElementById('semSelect').value
+      };
+
+      try {
+        const res = await fetch('/api/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('설정이 성공적으로 저장되었습니다.');
+          closeModal();
+        } else {
+          alert('설정 저장 실패: ' + data.message);
+        }
+      } catch (e) {
+        alert('서버 통신 오류: ' + e);
+      }
+    }
+
+    async function testLogin() {
+      const msg = document.getElementById('loginStatusMsg');
+      msg.style.color = '#94a3b8';
+      msg.innerText = '로그인 테스트 중...';
+      try {
+        const res = await fetch('/api/login_test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            student_id: document.getElementById('cfgStudentId').value.trim(),
+            password: document.getElementById('cfgPassword').value.trim()
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          msg.style.color = '#34d399';
+          msg.innerText = '✅ 포털 로그인 성공!';
+        } else {
+          msg.style.color = '#fb7185';
+          msg.innerText = '❌ ' + data.message;
+        }
+      } catch (e) {
+        msg.style.color = '#fb7185';
+        msg.innerText = '오류: ' + e;
+      }
+    }
+
+    async function testDiscord() {
+      const msg = document.getElementById('discordStatusMsg');
+      msg.style.color = '#94a3b8';
+      msg.innerText = '디스코드 알림 전송 중...';
+      try {
+        const res = await fetch('/api/discord/test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            webhook_url: document.getElementById('cfgWebhook').value.trim()
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          msg.style.color = '#34d399';
+          msg.innerText = '✅ 알림 전송 성공! 디스코드 앱을 확인하세요.';
+        } else {
+          msg.style.color = '#fb7185';
+          msg.innerText = '❌ ' + data.message;
+        }
+      } catch (e) {
+        msg.style.color = '#fb7185';
+        msg.innerText = '오류: ' + e;
+      }
+    }
+
+    async function loadCourses(force = false) {
+      const year = document.getElementById('yearSelect').value;
+      const sem = document.getElementById('semSelect').value;
+      const btn = document.getElementById('loadCoursesBtn');
+      btn.disabled = true;
+      btn.innerText = '⏳ 로딩 중...';
+      logToConsole(`[과목 조회] ${year}년도 ${sem} 개설 과목 요청 중...`);
+
+      try {
+        const res = await fetch(`/api/courses?year=${year}&sem=${sem}&refresh=${force ? '1' : '0'}`);
+        const data = await res.json();
+        allCourses = data.courses || [];
+        logToConsole(`[과목 로드 완료] 총 ${allCourses.length}개 과목이 수신되었습니다.`);
+        document.getElementById('totalCoursesBadge').innerText = `${allCourses.length.toLocaleString()}개 과목`;
+        populateDeptFilter(allCourses);
+        applyFilters();
+      } catch (e) {
+        logToConsole(`[과목 로드 실패] ${e}`);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '🔄 과목 불러오기';
+      }
+    }
+
+    function populateDeptFilter(courses) {
+      const depts = Array.from(new Set(courses.map(c => c.dept).filter(Boolean))).sort();
+      const sel = document.getElementById('deptFilter');
+      const currentVal = sel.value;
+      sel.innerHTML = '<option value="">전체 학과/학부</option>';
+      depts.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.innerText = d;
+        if (d === currentVal) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }
+
+    function onSearchChanged() {
+      applyFilters();
+    }
+
+    function onFilterChanged() {
+      applyFilters();
+    }
+
+    function resetFilters() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('deptFilter').value = '';
+      document.getElementById('typeFilter').value = '';
+      document.getElementById('gradeFilter').value = '';
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const query = document.getElementById('searchInput').value.trim().toLowerCase();
+      const dept = document.getElementById('deptFilter').value;
+      const type = document.getElementById('typeFilter').value;
+      const grade = document.getElementById('gradeFilter').value;
+
+      filteredCourses = allCourses.filter(c => {
+        if (dept && c.dept !== dept) return false;
+        if (type && !c.type.includes(type)) return false;
+        if (grade && c.grade !== grade && !c.grade.startsWith(grade)) return false;
+        if (query) {
+          const matchCode = c.code.toLowerCase().includes(query);
+          const matchName = c.name.toLowerCase().includes(query);
+          const matchProf = c.prof.toLowerCase().includes(query);
+          if (!matchCode && !matchName && !matchProf) return false;
+        }
+        return true;
+      });
+
+      currentPage = 1;
+      maxPage = Math.max(1, Math.ceil(filteredCourses.length / pageSize));
+      renderTable();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('courseTableBody');
+      const total = filteredCourses.length;
+      if (total === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 30px; color: var(--text-muted);">검색 조건에 일치하는 과목이 없습니다.</td></tr>';
+        document.getElementById('pageInfoText').innerText = '0개 중 0~0 표시';
+        document.getElementById('currentPageNum').innerText = '1 / 1';
+        return;
+      }
+
+      const start = (currentPage - 1) * pageSize;
+      const end = Math.min(start + pageSize, total);
+      const pageItems = filteredCourses.slice(start, end);
+
+      const starredKeySet = new Set(targetCourses.map(t => `${t.code}_${t.div}`));
+
+      let html = '';
+      pageItems.forEach(c => {
+        const isStarred = starredKeySet.has(`${c.code}_${c.div}`);
+        let typeBadgeClass = 'type-etc';
+        if (c.type.includes('전필')) typeBadgeClass = 'type-mjr-req';
+        else if (c.type.includes('전선')) typeBadgeClass = 'type-mjr-opt';
+        else if (c.type.includes('교필')) typeBadgeClass = 'type-ge-req';
+        else if (c.type.includes('교선')) typeBadgeClass = 'type-ge-opt';
+
+        const isVacant = c.rem > 0;
+        const vacantBadge = isVacant
+          ? `<span style="color: #34d399; font-weight: 700; background: rgba(16,185,129,0.15); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(16,185,129,0.3);">🎉 ${c.rem}석 여유</span>`
+          : `<span style="color: #94a3b8; font-size: 12px;">마감</span>`;
+
+        html += `
+          <tr>
+            <td style="text-align: center;">
+              <button class="star-btn ${isStarred ? '' : 'unstar-btn'}" onclick="toggleTarget('${c.code}', '${c.div}', '${encodeURIComponent(c.name)}', '${encodeURIComponent(c.prof)}', '${encodeURIComponent(c.dept)}', '${encodeURIComponent(c.type)}')">
+                ${isStarred ? '⭐' : '☆'}
+              </button>
+            </td>
+            <td><strong>${c.code}</strong>-${c.div}</td>
+            <td><span class="badge-type ${typeBadgeClass}">${c.type}</span></td>
+            <td><strong>${c.name}</strong></td>
+            <td>${c.point}</td>
+            <td>${c.grade}</td>
+            <td>${c.dept}</td>
+            <td>${c.prof}</td>
+            <td style="font-size: 12px; color: #cbd5e1;">${c.time_room || '-'}</td>
+            <td style="text-align: center; font-weight: 600;">${c.cur} / ${c.limit}</td>
+            <td style="text-align: center;">${vacantBadge}</td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+      document.getElementById('pageInfoText').innerText = `${total.toLocaleString()}개 중 ${start + 1}~${end} 표시`;
+      document.getElementById('currentPageNum').innerText = `${currentPage} / ${maxPage}`;
+    }
+
+    function changePage(p) {
+      if (p < 1) p = 1;
+      if (p > maxPage) p = maxPage;
+      currentPage = p;
+      renderTable();
+    }
+
+    async function toggleTarget(code, div, nameEnc, profEnc, deptEnc, typeEnc) {
+      const name = decodeURIComponent(nameEnc);
+      const prof = decodeURIComponent(profEnc);
+      const dept = decodeURIComponent(deptEnc);
+      const type = decodeURIComponent(typeEnc);
+
+      try {
+        const res = await fetch('/api/targets/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, div, name, prof, dept, type })
+        });
+        const data = await res.json();
+        if (data.success) {
+          targetCourses = data.target_courses;
+          renderWatchlist();
+          renderTable();
+        }
+      } catch (e) {
+        alert('관심 과목 토글 오류: ' + e);
+      }
+    }
+
+    function renderWatchlist() {
+      const container = document.getElementById('watchlistContainer');
+      document.getElementById('targetCountBadge').innerText = `${targetCourses.length}개 과목`;
+
+      if (targetCourses.length === 0) {
+        container.innerHTML = `
+          <div class="empty-placeholder" style="grid-column: 1 / -1;">
+            아래 전체 과목 목록에서 원하는 과목의 <strong>⭐ 별표</strong>를 클릭하면 이곳에 등록되어 실시간 빈자리를 감시합니다.
+          </div>`;
+        return;
+      }
+
+      let html = '';
+      targetCourses.forEach(t => {
+        // live status matching
+        const matched = allCourses.find(c => c.code === t.code && c.div === t.div);
+        const cur = matched ? matched.cur : (t.cur || 0);
+        const limit = matched ? matched.limit : (t.limit || 0);
+        const rem = matched ? matched.rem : Math.max(0, limit - cur);
+        const isVacant = rem > 0;
+
+        html += `
+          <div class="target-card ${isVacant ? 'has-vacant' : ''}">
+            <div class="target-card-top">
+              <span class="course-badge">${t.code}-${t.div} • ${t.type || '전공/교양'}</span>
+              <button class="star-btn" title="감시 해제" onclick="toggleTarget('${t.code}', '${t.div}', '', '', '', '')">⭐</button>
+            </div>
+            <div class="course-name">${t.name}</div>
+            <div class="course-meta">교수: ${t.prof || '-'} | 학과: ${t.dept || '-'}</div>
+            <div class="vacant-badge ${isVacant ? 'vacant-alert' : 'vacant-closed'}">
+              ${isVacant ? `🎉 ${rem}석 빈자리 감지! (${cur}/${limit}명)` : `신청 ${cur} / 정원 ${limit}명 (마감)`}
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    async function toggleMonitor() {
+      const btn = document.getElementById('toggleMonitorBtn');
+      btn.disabled = true;
+
+      try {
+        const endpoint = isMonitoring ? '/api/monitor/stop' : '/api/monitor/start';
+        const res = await fetch(endpoint, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          isMonitoring = !isMonitoring;
+          updateMonitorUI();
+        } else {
+          alert('오류: ' + data.message);
+        }
+      } catch (e) {
+        alert('통신 오류: ' + e);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function updateMonitorUI() {
+      const btn = document.getElementById('toggleMonitorBtn');
+      const text = document.getElementById('monitorStateText');
+
+      if (isMonitoring) {
+        btn.className = 'btn-danger';
+        btn.innerHTML = '<span>⏹️ 모니터링 중지</span>';
+        text.innerText = '🟢 실시간 모니터링 가동 중 (주기적 탐색)';
+        text.style.color = '#34d399';
+      } else {
+        btn.className = 'btn-success';
+        btn.innerHTML = '<span>▶️ 모니터링 시작</span>';
+        text.innerText = '모니터링 대기 중';
+        text.style.color = 'var(--text-muted)';
+      }
+    }
+
+    async function pollStatus() {
+      try {
+        const res = await fetch('/api/monitor/status');
+        const data = await res.json();
+        
+        isMonitoring = data.running;
+        updateMonitorUI();
+
+        // Update target cards live numbers if available
+        if (data.targets_status && data.targets_status.length > 0) {
+          data.targets_status.forEach(ts => {
+            const idx = targetCourses.findIndex(tc => tc.code === ts.code && tc.div === ts.div);
+            if (idx >= 0) {
+              targetCourses[idx].cur = ts.cur;
+              targetCourses[idx].limit = ts.limit;
+              targetCourses[idx].rem = ts.rem;
+            }
+          });
+          renderWatchlist();
+        }
+
+        // Render console logs
+        if (data.recent_logs && data.recent_logs.length > 0) {
+          const consoleBox = document.getElementById('consoleBox');
+          consoleBox.innerHTML = data.recent_logs.map(l => `<div class="console-line">${escapeHtml(l)}</div>`).join('');
+          consoleBox.scrollTop = consoleBox.scrollHeight;
+        }
+
+      } catch (e) {
+        // server temporarily offline
+        const st = document.getElementById('connectionStatus');
+        st.className = 'status-badge status-offline';
+        st.innerHTML = '<div class="pulse-dot"></div><span>서버 끊김</span>';
+      }
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function logToConsole(msg) {
+      const consoleBox = document.getElementById('consoleBox');
+      const time = new Date().toLocaleTimeString('ko-KR', { hour12: false });
+      const line = document.createElement('div');
+      line.className = 'console-line';
+      line.innerText = `[${time}] ${msg}`;
+      consoleBox.appendChild(line);
+      consoleBox.scrollTop = consoleBox.scrollHeight;
+    }
+
+    function clearConsole() {
+      document.getElementById('consoleBox').innerHTML = '<div class="console-line">[로그 초기화됨]</div>';
+    }
+
+    function openModal() {
+      document.getElementById('settingsModal').classList.add('active');
+    }
+    function closeModal() {
+      document.getElementById('settingsModal').classList.remove('active');
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
