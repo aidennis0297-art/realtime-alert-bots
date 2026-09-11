@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  alert-hub:
+    build: .
+    container_name: realtime-alert-hub
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - TZ=Asia/Seoul
+      - DOCKER_CONTAINER=1

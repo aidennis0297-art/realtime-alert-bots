@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Realtime Alert Hub • 실시간 알리미 통합 포털</title>
+  <style>
+    :root {
+      --bg-main: #0a0f1d;
+      --bg-card: #151d32;
+      --bg-card-hover: #1c2742;
+      --bg-input: #0a0f1d;
+      --border-color: #2a3b5c;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --emerald: #10b981;
+      --rose: #f43f5e;
+      --amber: #f59e0b;
+      --indigo: #6366f1;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+
+    header {
+      background: rgba(21, 29, 50, 0.95);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky; top: 0; z-index: 100;
+      padding: 10px 24px;
+      display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+    }
+    .header-left { display: flex; align-items: center; gap: 14px; }
+    .brand-title { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+    .brand-sub { font-size: 11px; color: var(--text-muted); }
+
+    /* Nav Tabs */
+    .nav-tabs { display: flex; background: #0c1427; padding: 4px; border-radius: 10px; border: 1px solid var(--border-color); }
+    .nav-tab {
+      padding: 8px 18px; font-size: 13px; font-weight: 700; color: var(--text-muted); cursor: pointer;
+      border-radius: 8px; border: none; background: transparent; transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+    }
+    .nav-tab.active { background: var(--primary); color: white; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4); }
+    .nav-tab:hover:not(.active) { color: #fff; background: rgba(255, 255, 255, 0.05); }
+
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .service-pill {
+      font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .pill-active { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .pill-idle { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
+    .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+    select, input[type="text"], input[type="password"], input[type="date"], input[type="time"], input[type="number"] {
+      background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-main);
+      padding: 8px 12px; border-radius: 8px; font-size: 13px; outline: none; transition: border-color 0.2s;
+    }
+    select:focus, input:focus { border-color: var(--primary); }
+
+    button {
+      cursor: pointer; border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
+      padding: 8px 14px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;
+    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+    .btn-success { background: var(--emerald); color: white; }
+    .btn-success:hover:not(:disabled) { background: #059669; }
+    .btn-danger { background: var(--rose); color: white; }
+    .btn-danger:hover:not(:disabled) { background: #e11d48; }
+    .btn-secondary { background: #25334e; color: var(--text-main); }
+    .btn-secondary:hover:not(:disabled) { background: #324468; }
+
+    .container { max-width: 1440px; margin: 0 auto; padding: 20px; width: 100%; display: flex; flex-direction: column; gap: 20px; flex: 1; }
+    .tab-content { display: none; flex-direction: column; gap: 20px; }
+    .tab-content.active { display: flex; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .card-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .card-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+
+    .grid-form {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; background: #0e1526; padding: 14px; border-radius: 10px; align-items: end;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 12px; font-weight: 600; color: #cbd5e1; }
+
+    /* Tables */
+    .table-container { overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+    th { background: #0e1526; color: #cbd5e1; font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+    td { padding: 9px 12px; border-bottom: 1px solid rgba(42, 59, 92, 0.6); color: #e2e8f0; vertical-align: middle; }
+    tr:hover td { background: var(--bg-card-hover); }
+
+    .vacant-badge { font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 6px; text-align: center; }
+    .vacant-alert { background: #10b981; color: white; animation: alert-glow 1s infinite alternate; }
+    @keyframes alert-glow { from { opacity: 0.85; } to { opacity: 1; box-shadow: 0 0 10px #10b981; } }
+    .vacant-closed { background: #25334e; color: #94a3b8; }
+
+    .star-btn { background: transparent; border: none; font-size: 18px; padding: 2px 6px; cursor: pointer; color: #facc15; }
+    .unstar-btn { color: #64748b; }
+
+    /* Watchlist Grid */
+    .watchlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+    .target-card {
+      background: #0e1526; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px;
+      display: flex; flex-direction: column; gap: 8px; position: relative;
+    }
+    .target-card.has-vacant {
+      border-color: #34d399; background: linear-gradient(135deg, #0e1526 0%, rgba(16, 185, 129, 0.15) 100%);
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.2);
+    }
+    .target-card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .course-badge { font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 700; background: #25334e; color: #cbd5e1; }
+    .course-name { font-size: 15px; font-weight: 700; color: #fff; margin-top: 4px; }
+    .course-meta { font-size: 12px; color: var(--text-muted); }
+
+    /* Stats Cards in Tab 3 */
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+    .stat-card {
+      background: #0e1526; border: 1px solid var(--border-color); border-radius: 12px; padding: 18px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .stat-header { display: flex; justify-content: space-between; align-items: center; }
+    .stat-title { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .stat-metric { font-size: 24px; font-weight: 800; color: #fff; }
+    .stat-sub { font-size: 12px; color: var(--text-muted); }
+
+    /* Console Box */
+    .console-box {
+      background: #060a14; border: 1px solid #1c2742; border-radius: 8px; padding: 12px;
+      height: 240px; overflow-y: auto; font-family: "Cascadia Code", Consolas, "Courier New", monospace;
+      font-size: 12px; color: #a5f3fc; line-height: 1.6;
+    }
+    .console-line { word-break: break-all; }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);
+      display: none; justify-content: center; align-items: center; z-index: 200; padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-content {
+      background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px;
+      width: 100%; max-width: 520px; padding: 24px; display: flex; flex-direction: column; gap: 18px;
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; }
+    .close-btn { background: transparent; color: var(--text-muted); font-size: 20px; padding: 4px 8px; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header>
+    <div class="header-left">
+      <span style="font-size: 24px;">🚀</span>
+      <div>
+        <div class="brand-title">Realtime Alert Hub</div>
+        <div class="brand-sub">고속버스 취소표 & 시립대 수강신청 통합 모니터링 포털</div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('kobus')">
+        <span>🚌 고속버스 알리미</span>
+      </button>
+      <button class="nav-tab" onclick="switchTab('uos')">
+        <span>🎓 시립대 수강신청</span>
+      </button>
+      <button class="nav-tab" onclick="switchTab('hub')">
+        <span>📊 통합 현황 & 콘솔</span>
+      </button>
+    </div>
+
+    <div class="header-right">
+      <div id="kobusStatusPill" class="service-pill pill-idle">
+        <div class="pulse-dot"></div>
+        <span>고속버스: 대기</span>
+      </div>
+      <div id="uosStatusPill" class="service-pill pill-idle">
+        <div class="pulse-dot"></div>
+        <span>수강신청: 대기</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- ==================== TAB 1: KOBUS ==================== -->
+    <div id="tab-kobus" class="tab-content active">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🚌 KOBUS 고속버스 노선 및 일정 선택</span>
+            <span id="kobusRouteBanner" style="font-size: 13px; font-weight: normal; color: var(--text-muted);">서울경부 ➔ 부산</span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button id="kobusSearchBtn" class="btn-primary" onclick="kobusFetchSchedule()">
+              <span>🔄 실시간 배차 조회</span>
+            </button>
+            <button id="kobusToggleBtn" class="btn-success" onclick="kobusToggleMonitor()">
+              <span>▶️ 빈자리 감시 시작</span>
+            </button>
+            <button class="btn-secondary" onclick="openKobusSettings()">
+              <span>⚙️ 알림 설정</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid-form">
+          <div class="form-group">
+            <label class="form-label">출발지 터미널</label>
+            <select id="kobusDeprSelect" onchange="kobusOnDeprChanged()">
+              <option value="021">센트럴시티(서울호남)</option>
+              <option value="010" selected>서울경부</option>
+              <option value="032">동서울</option>
+              <option value="700">부산</option>
+              <option value="500">광주(유·스퀘어)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">도착지 터미널</label>
+            <select id="kobusArvlSelect" onchange="kobusOnArvlChanged()">
+              <option value="700" selected>부산</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">출발 날짜</label>
+            <input type="date" id="kobusDateInput" value="2026-09-23">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">시작 시간</label>
+            <input type="time" id="kobusMinTime" value="14:00">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">종료 시간</label>
+            <input type="time" id="kobusMaxTime" value="23:59">
+          </div>
+        </div>
+      </div>
+
+      <!-- KOBUS Timetable Table -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🕒 고속버스 실시간 배차 시간표</span>
+            <span id="kobusBusCountBadge" class="course-badge">0개 배차</span>
+          </div>
+          <div id="kobusVacantAlertBanner" style="font-size: 13px; color: var(--emerald); font-weight: 700;"></div>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 100px;">출발시각</th>
+                <th style="width: 150px;">운행회사</th>
+                <th style="width: 120px;">버스등급</th>
+                <th style="width: 130px; text-align: center;">잔여석 / 총 좌석</th>
+                <th style="width: 130px; text-align: center;">예약 상태</th>
+                <th style="text-align: right;">예매</th>
+              </tr>
+            </thead>
+            <tbody id="kobusTableBody">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 36px; color: var(--text-muted);">
+                  상단의 <strong>[🔄 실시간 배차 조회]</strong> 버튼을 누르면 배차 목록이 표시됩니다.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 2: UOS SUGANG ==================== -->
+    <div id="tab-uos" class="tab-content">
+      <!-- UOS Watchlist Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>⭐ 관심 과목 감시 목록 (Watchlist)</span>
+            <span id="uosTargetCountBadge" class="course-badge">0개 과목</span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button id="uosToggleBtn" class="btn-success" onclick="uosToggleMonitor()">
+              <span>▶️ 수강신청 감시 시작</span>
+            </button>
+            <button class="btn-secondary" onclick="openUosSettings()">
+              <span>⚙️ 포털/알림 설정</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="uosWatchlistContainer" class="watchlist-grid">
+          <div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--text-muted); border: 1px dashed var(--border-color); border-radius: 8px;">
+            아래 과목 목록에서 <strong>⭐ 별표</strong>를 클릭하면 이곳에 등록되어 실시간 빈자리를 감시합니다.
+          </div>
+        </div>
+      </div>
+
+      <!-- UOS Course Explorer -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>📚 전체 개설 과목 탐색 & 검색</span>
+            <span id="uosTotalBadge" class="course-badge">0개 과목</span>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <select id="uosYearSelect">
+              <option value="2026" selected>2026학년도</option>
+              <option value="2025">2025학년도</option>
+            </select>
+            <select id="uosSemSelect">
+              <option value="CCMN031.20" selected>2학기</option>
+              <option value="CCMN031.10">1학기</option>
+              <option value="CCMN031.11">여름계절</option>
+              <option value="CCMN031.21">겨울계절</option>
+            </select>
+            <button id="uosLoadCoursesBtn" class="btn-primary" onclick="uosLoadCourses(true)">
+              <span>🔄 과목 불러오기</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid-form">
+          <div class="form-group" style="grid-column: span 2;">
+            <label class="form-label">통합 검색</label>
+            <input type="text" id="uosSearchInput" placeholder="과목명, 담당교수, 과목코드(5자리) 검색..." oninput="uosApplyFilters()">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">개설 학과/학부</label>
+            <select id="uosDeptFilter" onchange="uosApplyFilters()">
+              <option value="">전체 학과/학부</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">이수구분</label>
+            <select id="uosTypeFilter" onchange="uosApplyFilters()">
+              <option value="">전체 이수구분</option>
+              <option value="전공필수">전공필수</option>
+              <option value="전공선택">전공선택</option>
+              <option value="교양필수">교양필수</option>
+              <option value="교양선택">교양선택</option>
+              <option value="기초선택">기초선택</option>
+              <option value="교직">교직</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">학년</label>
+            <select id="uosGradeFilter" onchange="uosApplyFilters()">
+              <option value="">전체 학년</option>
+              <option value="1">1학년</option>
+              <option value="2">2학년</option>
+              <option value="3">3학년</option>
+              <option value="4">4학년</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 44px; text-align: center;">관심</th>
+                <th style="width: 90px;">코드-분반</th>
+                <th style="width: 80px;">이수구분</th>
+                <th>과목명</th>
+                <th style="width: 50px;">학점</th>
+                <th style="width: 50px;">학년</th>
+                <th style="width: 130px;">개설학과</th>
+                <th style="width: 90px;">담당교수</th>
+                <th style="width: 140px;">강의시간/강의실</th>
+                <th style="width: 90px; text-align: center;">신청/정원</th>
+                <th style="width: 100px; text-align: center;">잔여석 현황</th>
+              </tr>
+            </thead>
+            <tbody id="uosTableBody">
+              <tr>
+                <td colspan="11" style="text-align: center; padding: 36px; color: var(--text-muted);">
+                  우측 상단의 <strong>[🔄 과목 불러오기]</strong> 버튼을 누르면 전체 과목이 로드됩니다.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 3: UNIFIED HUB & CONSOLE ==================== -->
+    <div id="tab-hub" class="tab-content">
+      <div class="stats-row">
+        <!-- KOBUS Status Card -->
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-title"><span>🚌 KOBUS 고속버스 모니터</span></div>
+            <span id="hubKobusBadge" class="service-pill pill-idle">대기 중</span>
+          </div>
+          <div class="stat-metric" id="hubKobusChecks">0회 점검</div>
+          <div class="stat-sub" id="hubKobusInfo">노선: 미설정</div>
+          <div style="margin-top: 8px;">
+            <button class="btn-secondary" style="font-size: 12px; padding: 4px 10px;" onclick="switchTab('kobus')">
+              고속버스 탭으로 이동 ➔
+            </button>
+          </div>
+        </div>
+
+        <!-- UOS Status Card -->
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-title"><span>🎓 시립대 수강신청 모니터</span></div>
+            <span id="hubUosBadge" class="service-pill pill-idle">대기 중</span>
+          </div>
+          <div class="stat-metric" id="hubUosChecks">0회 점검</div>
+          <div class="stat-sub" id="hubUosInfo">감시 대상: 0개 과목</div>
+          <div style="margin-top: 8px;">
+            <button class="btn-secondary" style="font-size: 12px; padding: 4px 10px;" onclick="switchTab('uos')">
+              수강신청 탭으로 이동 ➔
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Unified Console Box -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>📟 실시간 통합 점검 로그 (Unified Console)</span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-secondary" style="font-size: 11px; padding: 4px 8px;" onclick="clearConsole()">
+              로그 비우기
+            </button>
+          </div>
+        </div>
+        <div id="consoleBox" class="console-box">
+          <div class="console-line">[시스템 준비 완료] Alert Hub가 성공적으로 가동되었습니다.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- KOBUS Settings Modal -->
+  <div id="kobusModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div style="font-weight: 700;">⚙️ KOBUS 고속버스 알림 설정</div>
+        <button class="close-btn" onclick="closeKobusSettings()">✕</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">디스코드 웹훅 URL (모바일 3연타 진동 푸시용)</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="kobusWebhook" placeholder="https://discord.com/api/webhooks/..." style="flex: 1;">
+          <button class="btn-secondary" type="button" onclick="kobusTestDiscord()">🔔 테스트 발송</button>
+        </div>
+        <span id="kobusDiscordMsg" style="font-size: 12px;"></span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">점검 주기 (초 단위, 권장: 5~7초)</label>
+        <input type="number" id="kobusInterval" min="3" max="60" value="6">
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
+        <button class="btn-secondary" onclick="closeKobusSettings()">취소</button>
+        <button class="btn-primary" onclick="kobusSaveSettings()">저장하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- UOS Settings Modal -->
+  <div id="uosModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div style="font-weight: 700;">⚙️ 시립대 수강신청 계정 & 알림 설정</div>
+        <button class="close-btn" onclick="closeUosSettings()">✕</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">서울시립대 포털 학번</label>
+        <input type="text" id="uosStudentId" placeholder="학번">
+      </div>
+      <div class="form-group">
+        <label class="form-label">포털 비밀번호</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="password" id="uosPassword" placeholder="비밀번호" style="flex: 1;">
+          <button class="btn-secondary" type="button" onclick="uosTestLogin()">🔑 로그인 검증</button>
+        </div>
+        <span id="uosLoginMsg" style="font-size: 12px;"></span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">디스코드 웹훅 URL (수강신청용)</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="uosWebhook" placeholder="https://discord.com/api/webhooks/..." style="flex: 1;">
+          <button class="btn-secondary" type="button" onclick="uosTestDiscord()">🔔 테스트 발송</button>
+        </div>
+        <span id="uosDiscordMsg" style="font-size: 12px;"></span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">점검 주기 (초 단위, 권장: 5~7초)</label>
+        <input type="number" id="uosInterval" min="3" max="60" value="6">
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
+        <button class="btn-secondary" onclick="closeUosSettings()">취소</button>
+        <button class="btn-primary" onclick="uosSaveSettings()">저장하기</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Tab switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+      if (tabId === 'kobus') {
+        document.querySelectorAll('.nav-tab')[0].classList.add('active');
+        document.getElementById('tab-kobus').classList.add('active');
+      } else if (tabId === 'uos') {
+        document.querySelectorAll('.nav-tab')[1].classList.add('active');
+        document.getElementById('tab-uos').classList.add('active');
+      } else if (tabId === 'hub') {
+        document.querySelectorAll('.nav-tab')[2].classList.add('active');
+        document.getElementById('tab-hub').classList.add('active');
+      }
+    }
+
+    // ==================== KOBUS LOGIC ====================
+    let kobusTerminals = { departures: [], routes: {} };
+    let kobusMonitoring = false;
+
+    async function kobusInit() {
+      try {
+        const res = await fetch('/api/kobus/terminals');
+        kobusTerminals = await res.json();
+        kobusPopulateDepartures();
+      } catch (e) {}
+
+      try {
+        const res = await fetch('/api/kobus/config');
+        const cfg = await res.json();
+        if (cfg.departure_terminal) document.getElementById('kobusDeprSelect').value = cfg.departure_terminal;
+        kobusPopulateArrivals();
+        if (cfg.arrival_terminal) document.getElementById('kobusArvlSelect').value = cfg.arrival_terminal;
+        if (cfg.date && cfg.date.length === 8) {
+          document.getElementById('kobusDateInput').value = `${cfg.date.substring(0,4)}-${cfg.date.substring(4,6)}-${cfg.date.substring(6,8)}`;
+        }
+        if (cfg.min_time) document.getElementById('kobusMinTime').value = cfg.min_time;
+        if (cfg.max_time) document.getElementById('kobusMaxTime').value = cfg.max_time;
+        if (cfg.discord && cfg.discord.webhook_url) document.getElementById('kobusWebhook').value = cfg.discord.webhook_url;
+        document.getElementById('kobusInterval').value = cfg.check_interval_seconds || 6;
+        kobusUpdateBanner();
+      } catch (e) {}
+
+      kobusFetchSchedule();
+    }
+
+    function kobusPopulateDepartures() {
+      const sel = document.getElementById('kobusDeprSelect');
+      if (!kobusTerminals.departures || kobusTerminals.departures.length === 0) return;
+      const cur = sel.value;
+      sel.innerHTML = '';
+      kobusTerminals.departures.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.code;
+        opt.innerText = d.name;
+        if (d.code === cur) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      kobusPopulateArrivals();
+    }
+
+    function kobusPopulateArrivals() {
+      const deprCd = document.getElementById('kobusDeprSelect').value;
+      const arvlSel = document.getElementById('kobusArvlSelect');
+      const cur = arvlSel.value;
+      const arrivals = (kobusTerminals.routes && kobusTerminals.routes[deprCd]) || [];
+
+      arvlSel.innerHTML = '';
+      arrivals.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.arvlCd;
+        opt.innerText = a.arvlNm;
+        if (a.arvlCd === cur) opt.selected = true;
+        arvlSel.appendChild(opt);
+      });
+      kobusUpdateBanner();
+    }
+
+    function kobusOnDeprChanged() {
+      kobusPopulateArrivals();
+      kobusSaveParams();
+      kobusFetchSchedule();
+    }
+
+    function kobusOnArvlChanged() {
+      kobusUpdateBanner();
+      kobusSaveParams();
+      kobusFetchSchedule();
+    }
+
+    function kobusUpdateBanner() {
+      const d = document.getElementById('kobusDeprSelect');
+      const a = document.getElementById('kobusArvlSelect');
+      const dName = d.options[d.selectedIndex] ? d.options[d.selectedIndex].text : '';
+      const aName = a.options[a.selectedIndex] ? a.options[a.selectedIndex].text : '';
+      document.getElementById('kobusRouteBanner').innerText = `${dName} ➔ ${aName}`;
+    }
+
+    async function kobusSaveParams() {
+      const d = document.getElementById('kobusDeprSelect');
+      const a = document.getElementById('kobusArvlSelect');
+      const payload = {
+        departure_terminal: d.value,
+        departure_name: d.options[d.selectedIndex] ? d.options[d.selectedIndex].text : '',
+        arrival_terminal: a.value,
+        arrival_name: a.options[a.selectedIndex] ? a.options[a.selectedIndex].text : '',
+        date: document.getElementById('kobusDateInput').value.replace(/-/g, ''),
+        min_time: document.getElementById('kobusMinTime').value,
+        max_time: document.getElementById('kobusMaxTime').value,
+        discord: { enabled: true, webhook_url: document.getElementById('kobusWebhook').value.trim() },
+        check_interval_seconds: parseInt(document.getElementById('kobusInterval').value, 10) || 6
+      };
+      await fetch('/api/kobus/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    }
+
+    async function kobusFetchSchedule() {
+      const deprCd = document.getElementById('kobusDeprSelect').value;
+      const arvlCd = document.getElementById('kobusArvlSelect').value;
+      const date = document.getElementById('kobusDateInput').value.replace(/-/g, '');
+      const minTime = document.getElementById('kobusMinTime').value;
+      const maxTime = document.getElementById('kobusMaxTime').value;
+
+      try {
+        const url = `/api/kobus/schedule?deprCd=${deprCd}&arvlCd=${arvlCd}&date=${date}&minTime=${encodeURIComponent(minTime)}&maxTime=${encodeURIComponent(maxTime)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        const buses = data.buses || [];
+        kobusRenderTimetable(buses);
+      } catch (e) {}
+    }
+
+    function kobusRenderTimetable(buses) {
+      const tbody = document.getElementById('kobusTableBody');
+      document.getElementById('kobusBusCountBadge').innerText = `총 ${buses.length}개 배차`;
+      const vacantCount = buses.filter(b => b.is_vacant).length;
+
+      const alertBanner = document.getElementById('kobusVacantAlertBanner');
+      if (vacantCount > 0) alertBanner.innerText = `🚨 취소표 ${vacantCount}건 발생! 예매 가능!`;
+      else alertBanner.innerText = `전 배차 매진`;
+
+      if (buses.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: var(--text-muted);">해당 조건의 운행 배차가 없습니다.</td></tr>';
+        return;
+      }
+
+      let html = '';
+      buses.forEach(b => {
+        const badge = b.is_vacant
+          ? `<span class="vacant-badge vacant-alert">🎉 ${b.rem_seats}석 가능</span>`
+          : `<span class="vacant-badge vacant-closed">매진</span>`;
+        html += `
+          <tr>
+            <td><strong style="color: #fff;">${b.depr_time}</strong></td>
+            <td>${b.company}</td>
+            <td>${b.bus_grade}</td>
+            <td style="text-align: center; font-weight: 600;">${b.rem_seats} / ${b.tot_seats}</td>
+            <td style="text-align: center;">${badge}</td>
+            <td style="text-align: right;">
+              <a href="https://www.kobus.co.kr/mrs/rotinf.do" target="_blank" class="btn-secondary" style="padding: 4px 8px; font-size: 11px; text-decoration: none;">예매 ➔</a>
+            </td>
+          </tr>`;
+      });
+      tbody.innerHTML = html;
+    }
+
+    async function kobusToggleMonitor() {
+      await kobusSaveParams();
+      const endpoint = kobusMonitoring ? '/api/kobus/monitor/stop' : '/api/kobus/monitor/start';
+      const res = await fetch(endpoint, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        kobusMonitoring = !kobusMonitoring;
+        updateKobusUI();
+      }
+    }
+
+    function updateKobusUI() {
+      const btn = document.getElementById('kobusToggleBtn');
+      const pill = document.getElementById('kobusStatusPill');
+      if (kobusMonitoring) {
+        btn.className = 'btn-danger'; btn.innerHTML = '<span>⏹️ 고속버스 감시 중지</span>';
+        pill.className = 'service-pill pill-active'; pill.innerHTML = '<div class="pulse-dot"></div><span>고속버스: 감시 중</span>';
+      } else {
+        btn.className = 'btn-success'; btn.innerHTML = '<span>▶️ 빈자리 감시 시작</span>';
+        pill.className = 'service-pill pill-idle'; pill.innerHTML = '<div class="pulse-dot"></div><span>고속버스: 대기</span>';
+      }
+    }
+
+    function openKobusSettings() { document.getElementById('kobusModal').classList.add('active'); }
+    function closeKobusSettings() { document.getElementById('kobusModal').classList.remove('active'); }
+    async function kobusSaveSettings() { await kobusSaveParams(); alert('KOBUS 설정이 저장되었습니다.'); closeKobusSettings(); }
+    async function kobusTestDiscord() {
+      const msg = document.getElementById('kobusDiscordMsg');
+      msg.innerText = '전송 중...';
+      const res = await fetch('/api/kobus/discord/test', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ webhook_url: document.getElementById('kobusWebhook').value.trim() })
+      });
+      const data = await res.json();
+      msg.innerText = data.success ? '✅ 발송 완료!' : '❌ ' + data.message;
+    }
+
+    // ==================== UOS LOGIC ====================
+    let uosCourses = [];
+    let uosFiltered = [];
+    let uosTargets = [];
+    let uosMonitoring = false;
+
+    async function uosInit() {
+      try {
+        const res = await fetch('/api/uos/config');
+        const data = await res.json();
+        uosTargets = data.target_courses || [];
+        document.getElementById('uosStudentId').value = data.student_id || '';
+        document.getElementById('uosPassword').value = data.password || '';
+        if (data.discord && data.discord.webhook_url) document.getElementById('uosWebhook').value = data.discord.webhook_url;
+        document.getElementById('uosInterval').value = data.check_interval_seconds || 6;
+        uosRenderWatchlist();
+      } catch (e) {}
+
+      uosLoadCourses(false);
+    }
+
+    async function uosLoadCourses(force = false) {
+      const year = document.getElementById('uosYearSelect').value;
+      const sem = document.getElementById('uosSemSelect').value;
+      const btn = document.getElementById('uosLoadCoursesBtn');
+      btn.disabled = true; btn.innerText = '⏳ 로딩 중...';
+      try {
+        const res = await fetch(`/api/uos/courses?year=${year}&sem=${sem}&refresh=${force ? '1' : '0'}`);
+        const data = await res.json();
+        uosCourses = data.courses || [];
+        document.getElementById('uosTotalBadge').innerText = `${uosCourses.length.toLocaleString()}개 과목`;
+        uosPopulateDepts();
+        uosApplyFilters();
+      } catch (e) {} finally {
+        btn.disabled = false; btn.innerText = '🔄 과목 불러오기';
+      }
+    }
+
+    function uosPopulateDepts() {
+      const depts = Array.from(new Set(uosCourses.map(c => c.dept).filter(Boolean))).sort();
+      const sel = document.getElementById('uosDeptFilter');
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">전체 학과/학부</option>';
+      depts.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d; opt.innerText = d;
+        if (d === cur) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }
+
+    function uosApplyFilters() {
+      const query = document.getElementById('uosSearchInput').value.trim().toLowerCase();
+      const dept = document.getElementById('uosDeptFilter').value;
+      const type = document.getElementById('uosTypeFilter').value;
+      const grade = document.getElementById('uosGradeFilter').value;
+
+      uosFiltered = uosCourses.filter(c => {
+        if (dept && c.dept !== dept) return false;
+        if (type && !c.type.includes(type)) return false;
+        if (grade && c.grade !== grade && !c.grade.startsWith(grade)) return false;
+        if (query) {
+          const mCode = c.code.toLowerCase().includes(query);
+          const mName = c.name.toLowerCase().includes(query);
+          const mProf = c.prof.toLowerCase().includes(query);
+          if (!mCode && !mName && !mProf) return false;
+        }
+        return true;
+      });
+
+      uosRenderTable();
+    }
+
+    function uosRenderTable() {
+      const tbody = document.getElementById('uosTableBody');
+      if (uosFiltered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 25px; color: var(--text-muted);">조건에 일치하는 과목이 없습니다.</td></tr>';
+        return;
+      }
+      const pageItems = uosFiltered.slice(0, 50); // top 50
+      const starredKeys = new Set(uosTargets.map(t => `${t.code}_${t.div}`));
+
+      let html = '';
+      pageItems.forEach(c => {
+        const isStarred = starredKeys.has(`${c.code}_${c.div}`);
+        const isVacant = c.rem > 0;
+        const vacantBadge = isVacant
+          ? `<span style="color: #34d399; font-weight: 700; background: rgba(16,185,129,0.15); padding: 3px 6px; border-radius: 4px;">🎉 ${c.rem}석 여유</span>`
+          : `<span style="color: #94a3b8; font-size: 12px;">마감</span>`;
+
+        html += `
+          <tr>
+            <td style="text-align: center;">
+              <button class="star-btn ${isStarred ? '' : 'unstar-btn'}" onclick="uosToggleTarget('${c.code}', '${c.div}', '${encodeURIComponent(c.name)}', '${encodeURIComponent(c.prof)}', '${encodeURIComponent(c.dept)}', '${encodeURIComponent(c.type)}')">
+                ${isStarred ? '⭐' : '☆'}
+              </button>
+            </td>
+            <td><strong>${c.code}</strong>-${c.div}</td>
+            <td>${c.type}</td>
+            <td><strong>${c.name}</strong></td>
+            <td>${c.point}</td>
+            <td>${c.grade}</td>
+            <td>${c.dept}</td>
+            <td>${c.prof}</td>
+            <td style="font-size: 12px; color: #cbd5e1;">${c.time_room || '-'}</td>
+            <td style="text-align: center; font-weight: 600;">${c.cur} / ${c.limit}</td>
+            <td style="text-align: center;">${vacantBadge}</td>
+          </tr>`;
+      });
+      tbody.innerHTML = html;
+    }
+
+    async function uosToggleTarget(code, div, nameEnc, profEnc, deptEnc, typeEnc) {
+      const res = await fetch('/api/uos/targets/toggle', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code, div,
+          name: decodeURIComponent(nameEnc),
+          prof: decodeURIComponent(profEnc),
+          dept: decodeURIComponent(deptEnc),
+          type: decodeURIComponent(typeEnc)
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        uosTargets = data.target_courses;
+        uosRenderWatchlist();
+        uosRenderTable();
+      }
+    }
+
+    function uosRenderWatchlist() {
+      const container = document.getElementById('uosWatchlistContainer');
+      document.getElementById('uosTargetCountBadge').innerText = `${uosTargets.length}개 과목`;
+      if (uosTargets.length === 0) {
+        container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--text-muted); border: 1px dashed var(--border-color); border-radius: 8px;">아래 과목 목록에서 ⭐ 별표를 클릭하면 등록됩니다.</div>`;
+        return;
+      }
+      let html = '';
+      uosTargets.forEach(t => {
+        const matched = uosCourses.find(c => c.code === t.code && c.div === t.div);
+        const cur = matched ? matched.cur : (t.cur || 0);
+        const limit = matched ? matched.limit : (t.limit || 0);
+        const rem = matched ? matched.rem : Math.max(0, limit - cur);
+        const isVacant = rem > 0;
+
+        html += `
+          <div class="target-card ${isVacant ? 'has-vacant' : ''}">
+            <div class="target-card-top">
+              <span class="course-badge">${t.code}-${t.div} • ${t.type || '전공'}</span>
+              <button class="star-btn" onclick="uosToggleTarget('${t.code}', '${t.div}', '', '', '', '')">⭐</button>
+            </div>
+            <div class="course-name">${t.name}</div>
+            <div class="course-meta">교수: ${t.prof || '-'} | 학과: ${t.dept || '-'}</div>
+            <div class="vacant-badge ${isVacant ? 'vacant-alert' : 'vacant-closed'}">
+              ${isVacant ? `🎉 ${rem}석 빈자리 발생! (${cur}/${limit}명)` : `신청 ${cur} / 정원 ${limit}명 (마감)`}
+            </div>
+          </div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    async function uosToggleMonitor() {
+      const endpoint = uosMonitoring ? '/api/uos/monitor/stop' : '/api/uos/monitor/start';
+      const res = await fetch(endpoint, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        uosMonitoring = !uosMonitoring;
+        updateUosUI();
+      }
+    }
+
+    function updateUosUI() {
+      const btn = document.getElementById('uosToggleBtn');
+      const pill = document.getElementById('uosStatusPill');
+      if (uosMonitoring) {
+        btn.className = 'btn-danger'; btn.innerHTML = '<span>⏹️ 수강 감시 중지</span>';
+        pill.className = 'service-pill pill-active'; pill.innerHTML = '<div class="pulse-dot"></div><span>수강신청: 감시 중</span>';
+      } else {
+        btn.className = 'btn-success'; btn.innerHTML = '<span>▶️ 수강신청 감시 시작</span>';
+        pill.className = 'service-pill pill-idle'; pill.innerHTML = '<div class="pulse-dot"></div><span>수강신청: 대기</span>';
+      }
+    }
+
+    function openUosSettings() { document.getElementById('uosModal').classList.add('active'); }
+    function closeUosSettings() { document.getElementById('uosModal').classList.remove('active'); }
+    async function uosSaveSettings() {
+      const payload = {
+        student_id: document.getElementById('uosStudentId').value.trim(),
+        password: document.getElementById('uosPassword').value.trim(),
+        discord: { enabled: true, webhook_url: document.getElementById('uosWebhook').value.trim() },
+        check_interval_seconds: parseInt(document.getElementById('uosInterval').value, 10) || 6,
+        year: document.getElementById('uosYearSelect').value,
+        semester: document.getElementById('uosSemSelect').value
+      };
+      await fetch('/api/uos/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      alert('시립대 수강신청 설정이 저장되었습니다.');
+      closeUosSettings();
+    }
+    async function uosTestLogin() {
+      const msg = document.getElementById('uosLoginMsg');
+      msg.innerText = '검증 중...';
+      const res = await fetch('/api/uos/login_test', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_id: document.getElementById('uosStudentId').value.trim(),
+          password: document.getElementById('uosPassword').value.trim()
+        })
+      });
+      const data = await res.json();
+      msg.innerText = data.success ? '✅ 로그인 성공!' : '❌ ' + data.message;
+    }
+    async function uosTestDiscord() {
+      const msg = document.getElementById('uosDiscordMsg');
+      msg.innerText = '발송 중...';
+      const res = await fetch('/api/uos/discord/test', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ webhook_url: document.getElementById('uosWebhook').value.trim() })
+      });
+      const data = await res.json();
+      msg.innerText = data.success ? '✅ 전송 성공!' : '❌ ' + data.message;
+    }
+
+    // ==================== HUB CONSOLIDATED POLL ====================
+    async function hubPoll() {
+      try {
+        const res = await fetch('/api/hub/status');
+        const data = await res.json();
+
+        // KOBUS
+        kobusMonitoring = data.kobus.running;
+        updateKobusUI();
+        document.getElementById('hubKobusChecks').innerText = `${data.kobus.check_count.toLocaleString()}회 점검`;
+        document.getElementById('hubKobusInfo').innerText = `구간: ${data.kobus.departure_name} ➔ ${data.kobus.arrival_name} (${data.kobus.date})`;
+        const hubKBadge = document.getElementById('hubKobusBadge');
+        if (kobusMonitoring) {
+          hubKBadge.className = 'service-pill pill-active'; hubKBadge.innerText = '실시간 감시 중';
+        } else {
+          hubKBadge.className = 'service-pill pill-idle'; hubKBadge.innerText = '대기 중';
+        }
+
+        // UOS
+        uosMonitoring = data.uos.running;
+        updateUosUI();
+        document.getElementById('hubUosChecks').innerText = `${data.uos.check_count.toLocaleString()}회 점검`;
+        document.getElementById('hubUosInfo').innerText = `감시 대상: ${data.uos.target_count}개 과목`;
+        const hubUBadge = document.getElementById('hubUosBadge');
+        if (uosMonitoring) {
+          hubUBadge.className = 'service-pill pill-active'; hubUBadge.innerText = '실시간 감시 중';
+        } else {
+          hubUBadge.className = 'service-pill pill-idle'; hubUBadge.innerText = '대기 중';
+        }
+
+        // Combine logs
+        const kLogs = (data.kobus.recent_logs || []).map(l => `[KOBUS] ${l}`);
+        const uLogs = (data.uos.recent_logs || []).map(l => `[UOS] ${l}`);
+        const combined = [...kLogs, ...uLogs].slice(-100);
+
+        if (combined.length > 0) {
+          const cBox = document.getElementById('consoleBox');
+          cBox.innerHTML = combined.map(l => `<div class="console-line">${escapeHtml(l)}</div>`).join('');
+          cBox.scrollTop = cBox.scrollHeight;
+        }
+
+      } catch (e) {}
+    }
+
+    function escapeHtml(t) { return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+    function clearConsole() { document.getElementById('consoleBox').innerHTML = '<div class="console-line">[로그 초기화됨]</div>'; }
+
+    window.onload = () => {
+      kobusInit();
+      uosInit();
+      hubPoll();
+      setInterval(hubPoll, 2500);
+    };
+  </script>
+</body>
+</html>
