@@ -1,0 +1,15 @@
+{
+  "route_id": "jeju-gmp",
+  "dep_code": "GMP",
+  "arr_code": "CJU",
+  "date": "20260912",
+  "max_price": 50000,
+  "golden_time_only": false,
+  "promo_only": false,
+  "min_seats": 1,
+  "check_interval_seconds": 15,
+  "discord": {
+    "webhook_url": "https://discord.com/api/webhooks/YOUR_WEBHOOK_URL_HERE",
+    "mention": "@everyone"
+  }
+}

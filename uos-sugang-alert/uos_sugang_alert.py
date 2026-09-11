@@ -35,6 +35,40 @@ else:
 BASE_URL = "https://sugang.uos.ac.kr"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
 
+
+def get_current_academic_period():
+    """
+    현재 날짜 기준으로 서울시립대 수강신청 학년도 및 학기 코드를 자동 산출
+    - 1월 ~ 4월: 1학기 (CCMN031.10)
+    - 5월 ~ 6월: 여름계절학기 (CCMN031.11)
+    - 7월 ~ 10월: 2학기 (CCMN031.20)
+    - 11월 ~ 12월: 겨울계절학기 (CCMN031.21)
+    """
+    now = datetime.now()
+    year = str(now.year)
+    month = now.month
+
+    if 1 <= month <= 4:
+        sem_code = "CCMN031.10"
+        sem_name = "1학기"
+    elif 5 <= month <= 6:
+        sem_code = "CCMN031.11"
+        sem_name = "여름계절학기"
+    elif 7 <= month <= 10:
+        sem_code = "CCMN031.20"
+        sem_name = "2학기"
+    else:
+        sem_code = "CCMN031.21"
+        sem_name = "겨울계절학기"
+
+    return {
+        "year": year,
+        "semester": sem_code,
+        "semester_name": sem_name,
+        "display": f"{year}학년도 {sem_name}"
+    }
+
+
 class UosSugangMonitor:
     def __init__(self, config_path="config.json", log_callback=None):
         self.config_path = config_path
@@ -55,14 +89,18 @@ class UosSugangMonitor:
         self.course_cache = {}  # (year, sem) -> list of courses
         self.is_logged_in = False
 
+    def get_academic_period(self):
+        return get_current_academic_period()
+
     def load_config(self):
+        period = get_current_academic_period()
         if not os.path.exists(self.config_path):
             default_config = {
                 "student_id": "",
                 "password": "",
                 "device": "PC",
-                "year": "2026",
-                "semester": "CCMN031.20",
+                "year": period["year"],
+                "semester": period["semester"],
                 "target_courses": [],
                 "check_interval_seconds": 6,
                 "discord": {
@@ -72,7 +110,12 @@ class UosSugangMonitor:
             }
             return default_config
         with open(self.config_path, "r", encoding="utf-8") as f:
-            return json.load(f)
+            cfg = json.load(f)
+            if not cfg.get("year"):
+                cfg["year"] = period["year"]
+            if not cfg.get("semester"):
+                cfg["semester"] = period["semester"]
+            return cfg
 
     def save_config(self, new_config=None):
         if new_config:

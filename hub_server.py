@@ -36,7 +36,8 @@ sub_paths = [
     os.path.join(BASE_DIR, "kobus-seat-alert"),
     os.path.join(BASE_DIR, "train-seat-alert"),
     os.path.join(BASE_DIR, "cinema-seat-alert"),
-    os.path.join(BASE_DIR, "uos-sugang-alert")
+    os.path.join(BASE_DIR, "uos-sugang-alert"),
+    os.path.join(BASE_DIR, "flight-seat-alert")
 ]
 for p in sub_paths:
     if p not in sys.path:
@@ -56,7 +57,7 @@ if not os.path.exists(train_cfg):
     train_cfg = os.path.join(BASE_DIR, "train-seat-alert", "config.example.json")
 train_monitor = TrainMonitor(train_cfg)
 
-# 3. Cinema (Megabox) 엔진 로드
+# 3. Cinema (Megabox & CGV) 엔진 로드
 from cinema_alert import CinemaMonitor
 cinema_cfg = os.path.join(BASE_DIR, "cinema-seat-alert", "config.json")
 if not os.path.exists(cinema_cfg):
@@ -74,6 +75,13 @@ uos_monitor = UosSugangMonitor(uos_cfg)
 from uos_campus_alert import UosCampusMonitor, RECOMMENDED_TAGS
 campus_cfg = os.path.join(BASE_DIR, "uos-sugang-alert", "campus_config.json")
 campus_monitor = UosCampusMonitor(campus_cfg)
+
+# 6. Flight (제주 & 일본 특가) 엔진 로드
+from flight_alert import FlightMonitor, POPULAR_ROUTES, AIRPORTS
+flight_cfg = os.path.join(BASE_DIR, "flight-seat-alert", "config.json")
+if not os.path.exists(flight_cfg):
+    flight_cfg = os.path.join(BASE_DIR, "flight-seat-alert", "config.example.json")
+flight_monitor = FlightMonitor(flight_cfg)
 
 
 class AlertHubHandler(BaseHTTPRequestHandler):
@@ -119,7 +127,8 @@ class AlertHubHandler(BaseHTTPRequestHandler):
                 "train": train_monitor.get_status(),
                 "cinema": cinema_monitor.get_status(),
                 "uos_sugang": uos_monitor.get_status(),
-                "uos_campus": campus_monitor.get_status()
+                "uos_campus": campus_monitor.get_status(),
+                "flight": flight_monitor.get_status()
             })
             return
 
@@ -169,9 +178,14 @@ class AlertHubHandler(BaseHTTPRequestHandler):
             self.send_json(train_monitor.get_status())
             return
 
-        # 5. Cinema (Megabox) APIs
+        # 5. Cinema (CGV IMAX & Megabox) APIs
         if path == "/api/cinema/theaters":
-            self.send_json({"regions": cinema_monitor.fetch_theaters()})
+            brand = qs.get("brand", [cinema_monitor.config.get("brand", "CGV")])[0].upper()
+            self.send_json({
+                "brand": brand,
+                "brands": ["CGV", "MEGABOX"],
+                "regions": cinema_monitor.fetch_theaters(brand)
+            })
             return
 
         if path == "/api/cinema/config":
@@ -179,13 +193,15 @@ class AlertHubHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/cinema/schedule":
-            th = qs.get("theaterCode", [cinema_monitor.config.get("theater_code", "1351")])[0]
+            brand = qs.get("brand", [cinema_monitor.config.get("brand", "CGV")])[0].upper()
+            default_th = "0013" if brand == "CGV" else "1351"
+            th = qs.get("theaterCode", [cinema_monitor.config.get("theater_code", default_th)])[0]
             date = qs.get("date", [cinema_monitor.config.get("date", "")])[0]
             mv = qs.get("movieFilter", [cinema_monitor.config.get("target_movie", "")])[0]
             spc = qs.get("specialOnly", ["0"])[0] == "1"
             min_seats = int(qs.get("minSeats", [cinema_monitor.config.get("min_seats", 1)])[0])
-            shows = cinema_monitor.query_showtimes(th, date, mv, spc, min_seats)
-            self.send_json({"showtimes": shows})
+            shows = cinema_monitor.query_showtimes(brand=brand, theater_code=th, date=date, movie_filter=mv, special_only=spc, min_seats=min_seats)
+            self.send_json({"brand": brand, "showtimes": shows})
             return
 
         if path == "/api/cinema/monitor/status":
@@ -195,12 +211,14 @@ class AlertHubHandler(BaseHTTPRequestHandler):
         # 6. UOS Sugang APIs
         if path == "/api/uos/config":
             cfg = uos_monitor.config
+            period = uos_monitor.get_academic_period()
             safe_cfg = {
                 "student_id": cfg.get("student_id", ""),
                 "password": cfg.get("password", ""),
                 "device": cfg.get("device", "PC"),
-                "year": cfg.get("year", "2026"),
-                "semester": cfg.get("semester", "CCMN031.20"),
+                "year": cfg.get("year", period["year"]),
+                "semester": cfg.get("semester", period["semester"]),
+                "academic_period": period,
                 "target_courses": cfg.get("target_courses", []),
                 "check_interval_seconds": cfg.get("check_interval_seconds", 6),
                 "discord": cfg.get("discord", {})
@@ -209,11 +227,12 @@ class AlertHubHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/uos/courses":
-            year = qs.get("year", ["2026"])[0]
-            sem = qs.get("sem", ["CCMN031.20"])[0]
+            period = uos_monitor.get_academic_period()
+            year = qs.get("year", [period["year"]])[0]
+            sem = qs.get("sem", [period["semester"]])[0]
             refresh = qs.get("refresh", ["0"])[0] == "1"
             courses = uos_monitor.fetch_courses(year=year, semester=sem, force_refresh=refresh)
-            self.send_json({"courses": courses})
+            self.send_json({"courses": courses, "academic_period": period})
             return
 
         if path == "/api/uos/monitor/status":
@@ -243,6 +262,33 @@ class AlertHubHandler(BaseHTTPRequestHandler):
             self.send_json(campus_monitor.get_status())
             return
 
+        # 8. Flight (제주 & 일본 특가) APIs
+        if path == "/api/flight/routes":
+            self.send_json({
+                "routes": POPULAR_ROUTES,
+                "airports": AIRPORTS
+            })
+            return
+
+        if path == "/api/flight/config":
+            self.send_json(flight_monitor.config)
+            return
+
+        if path == "/api/flight/schedule":
+            dep = qs.get("dep", [flight_monitor.config.get("dep_code", "GMP")])[0]
+            arr = qs.get("arr", [flight_monitor.config.get("arr_code", "CJU")])[0]
+            date = qs.get("date", [flight_monitor.config.get("date", "")])[0]
+            max_price = int(qs.get("maxPrice", [flight_monitor.config.get("max_price", 999999)])[0])
+            golden_only = qs.get("goldenOnly", ["0"])[0] == "1"
+            promo_only = qs.get("promoOnly", ["0"])[0] == "1"
+            flights = flight_monitor.query_flights(dep_code=dep, arr_code=arr, date_str=date, max_price=max_price, golden_only=golden_only, promo_only=promo_only)
+            self.send_json({"dep": dep, "arr": arr, "flights": flights})
+            return
+
+        if path == "/api/flight/monitor/status":
+            self.send_json(flight_monitor.get_status())
+            return
+
         self.send_error(404, "Not Found")
 
     def do_POST(self):
@@ -262,7 +308,8 @@ class AlertHubHandler(BaseHTTPRequestHandler):
             c_ok, _ = cinema_monitor.start_monitoring()
             u_ok, _ = uos_monitor.start_monitoring()
             cp_ok, _ = campus_monitor.start_monitoring()
-            self.send_json({"success": True, "message": "전체 감시 엔진이 가동되었습니다."})
+            fl_ok, _ = flight_monitor.start_monitoring()
+            self.send_json({"success": True, "message": "전체 감시 엔진(고속버스/열차/영화관/수강/캠퍼스/항공권)이 가동되었습니다."})
             return
 
         if path == "/api/hub/stop_all":
@@ -271,6 +318,7 @@ class AlertHubHandler(BaseHTTPRequestHandler):
             cinema_monitor.stop_monitoring()
             uos_monitor.stop_monitoring()
             campus_monitor.stop_monitoring()
+            flight_monitor.stop_monitoring()
             self.send_json({"success": True, "message": "전체 감시 엔진이 중지되었습니다."})
             return
 
@@ -456,6 +504,32 @@ class AlertHubHandler(BaseHTTPRequestHandler):
             self.send_json({"success": True, "message": "테스트 알림 발송 완료!"})
             return
 
+        # 7. Flight POSTs
+        if path == "/api/flight/config":
+            curr = flight_monitor.config
+            for k in ["route_id", "dep_code", "arr_code", "date", "max_price", "golden_time_only", "promo_only", "check_interval_seconds", "discord"]:
+                if k in body:
+                    curr[k] = body[k]
+            flight_monitor.save_config(curr)
+            self.send_json({"success": True, "message": "항공권 설정 저장 완료"})
+            return
+
+        if path == "/api/flight/monitor/start":
+            ok, msg = flight_monitor.start_monitoring()
+            self.send_json({"success": ok, "message": msg})
+            return
+
+        if path == "/api/flight/monitor/stop":
+            ok, msg = flight_monitor.stop_monitoring()
+            self.send_json({"success": ok, "message": msg})
+            return
+
+        if path == "/api/flight/discord/test":
+            custom_hook = body.get("webhook_url", "").strip() or None
+            ok, msg = flight_monitor.send_test_discord(custom_hook)
+            self.send_json({"success": ok, "message": msg})
+            return
+
         self.send_error(404, "Not Found")
 
     def log_message(self, format, *args):
@@ -480,10 +554,10 @@ def run_server(open_browser=True, port=None):
     url = f"http://localhost:{port}"
 
     print("=" * 72)
-    print("🚀 Realtime Alert Hub 2.0 (실시간 알리미 5대 올인원 포털 허브)")
+    print("🚀 Realtime Alert Hub 2.0 (실시간 알리미 6대 올인원 포털 허브)")
     print("=" * 72)
     print(f"• 통합 대시보드 주소: {url}")
-    print("• 가동 서비스: 고속버스 + KTX/SRT + 영화관 명당 + 수강신청 + 스마트 캠퍼스")
+    print("• 가동 서비스: 고속버스 + KTX/SRT + 특가 항공권 + 영화관 명당 + 수강신청 + 캠퍼스")
     print("• 웹 브라우저가 자동으로 실행됩니다. (종료: Ctrl + C)")
     print("=" * 72)
 
@@ -499,6 +573,7 @@ def run_server(open_browser=True, port=None):
         cinema_monitor.stop_monitoring()
         uos_monitor.stop_monitoring()
         campus_monitor.stop_monitoring()
+        flight_monitor.stop_monitoring()
         server.server_close()
         print("서버가 안전하게 종료되었습니다.")
 

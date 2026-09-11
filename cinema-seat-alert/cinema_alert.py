@@ -20,35 +20,48 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 THEATERS_FILE = os.path.join(CURRENT_DIR, "cinema_theaters.json")
 
 
-def load_theaters_data():
+def load_theaters_data(brand="CGV"):
     if os.path.exists(THEATERS_FILE):
         try:
             with open(THEATERS_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            pass
+                raw_data = json.load(f)
+                if isinstance(raw_data, dict) and ("CGV" in raw_data or "MEGABOX" in raw_data):
+                    b = (brand or "CGV").upper()
+                    return raw_data.get(b, raw_data.get("CGV", {}))
+                return raw_data
+        except Exception as e:
+            print(f"[!] 극장 목록 로드 실패: {e}")
+
     # Fallback 기본 데이터
+    if (brand or "CGV").upper() == "CGV":
+        return {
+            "서울": [
+                {"code": "0013", "name": "용산아이파크몰 [IMAX]", "is_imax": True},
+                {"code": "0074", "name": "왕십리 [IMAX]", "is_imax": True},
+                {"code": "0059", "name": "영등포타임스퀘어 [IMAX]", "is_imax": True},
+                {"code": "0056", "name": "강남", "is_imax": False}
+            ],
+            "경기": [
+                {"code": "0257", "name": "광교 [IMAX]", "is_imax": True},
+                {"code": "0054", "name": "일산 [IMAX]", "is_imax": True},
+                {"code": "0181", "name": "판교 [IMAX]", "is_imax": True}
+            ]
+        }
     return {
         "서울": [
+            {"code": "1351", "name": "코엑스 [돌비]"},
             {"code": "1372", "name": "강남"},
-            {"code": "1351", "name": "코엑스"},
-            {"code": "1212", "name": "홍대"},
-            {"code": "1371", "name": "센트럴"}
-        ],
-        "경기/인천": [
-            {"code": "0029", "name": "광명AK플라자"},
-            {"code": "4121", "name": "고양스타필드"},
-            {"code": "4062", "name": "송도"}
+            {"code": "1212", "name": "홍대"}
         ]
     }
 
 
 class CinemaMonitor:
-    """영화관(메가박스) 특별관 명당 및 잔여석 실시간 감시 엔진"""
+    """영화관(CGV IMAX / 메가박스 돌비시네마) 특별관 명당 및 잔여석 실시간 감시 엔진"""
     def __init__(self, config_path=None):
         self.config_path = config_path or os.path.join(CURRENT_DIR, "config.json")
         self.config = self.load_config()
-        self.theaters_map = load_theaters_data()
+        self.theaters_map = load_theaters_data(self.config.get("brand", "CGV"))
         self.is_running = False
         self.monitor_thread = None
         self.check_count = 0
@@ -71,12 +84,13 @@ class CinemaMonitor:
 
     def load_config(self):
         default_config = {
-            "theater_code": "1351",         # 코엑스
-            "theater_name": "코엑스",
+            "brand": "CGV",                     # CGV 또는 MEGABOX
+            "theater_code": "0013",             # 용산아이파크몰 (용아맥)
+            "theater_name": "용산아이파크몰 [IMAX]",
             "date": datetime.now().strftime("%Y%m%d"),
-            "target_movie": "",              # 빈 문자열이면 전체 영화
-            "special_hall_only": False,      # 돌비, 레이저, 리클라이너 등 특별관만 감시
-            "min_seats": 1,                  # 알림 기준 잔여석 (1석, 2석 이상 등)
+            "target_movie": "",                 # 빈 문자열이면 전체 영화
+            "special_hall_only": True,          # IMAX, 돌비, 4DX 등 특별관 우선 감시
+            "min_seats": 1,                     # 알림 기준 잔여석 (1석, 2석 이상 등)
             "check_interval_seconds": 10,
             "discord": {
                 "webhook_url": "",
@@ -103,21 +117,96 @@ class CinemaMonitor:
             self.log(f"설정 저장 실패: {e}")
             return False
 
-    def fetch_theaters(self):
-        return self.theaters_map
+    def fetch_theaters(self, brand=None):
+        b = (brand or self.config.get("brand", "CGV")).upper()
+        return load_theaters_data(b)
 
-    def query_showtimes(self, theater_code=None, date=None, movie_filter=None, special_only=None, min_seats=None):
-        brch = theater_code or self.config.get("theater_code", "1351")
-        target_date = (date or self.config.get("date", datetime.now().strftime("%Y%m%d"))).replace("-", "")
-        mv_query = (movie_filter if movie_filter is not None else self.config.get("target_movie", "")).strip().lower()
-        is_spc_only = special_only if special_only is not None else self.config.get("special_hall_only", False)
-        threshold = int(min_seats if min_seats is not None else self.config.get("min_seats", 1))
+    def query_cgv_showtimes(self, theater_code, target_date, mv_query, is_spc_only, threshold):
+        """CGV 공식 Next.js BFF 상영시간표 실시간 API 쿼리"""
+        params = {
+            "coCd": "A420",
+            "siteNo": theater_code,
+            "scnYmd": target_date,
+            "rtctlScopCd": "01"
+        }
+        url = f"https://cgv.co.kr/api/v1/booking/searchMovScnInfo?{urllib.parse.urlencode(params)}"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+            "Referer": "https://cgv.co.kr/",
+            "Accept": "application/json, text/plain, */*"
+        }
 
+        try:
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=8) as res:
+                raw = res.read().decode("utf-8")
+                d = json.loads(raw)
+                sched_list = d.get("data", []) or []
+                parsed_shows = []
+
+                for s in sched_list:
+                    mv_name = s.get("expoProdNm", "") or s.get("prodNm", "")
+                    if mv_query and mv_query not in mv_name.lower():
+                        continue
+
+                    hall_name = s.get("expoScnsNm", "") or s.get("scnsNm", "")
+                    format_name = s.get("movkndDsplNm", "") or ""
+                    special_grade = s.get("tcscnsGradNm", "") or ""
+
+                    # 결합 명칭 생성
+                    if format_name and format_name not in hall_name:
+                        combined_desc = f"{hall_name} ({format_name})"
+                    else:
+                        combined_desc = hall_name
+
+                    # 특별관 감지 (IMAX, 4DX, ScreenX, Gold Class, Dolby Atmos, Laser 등)
+                    search_str = f"{hall_name} {format_name} {special_grade}".upper()
+                    is_imax = "IMAX" in search_str
+                    is_special = is_imax or any(k in search_str for k in [
+                        "4DX", "SCREENX", "GOLD", "골드", "CINE", "씨네", "TEMPUR", "템퍼", "DOLBY", "돌비", "ATMOS", "LASER", "레이저", "리클라이너"
+                    ])
+
+                    if is_spc_only and not is_special:
+                        continue
+
+                    rest_seats = int(s.get("frSeatCnt", 0) or 0)
+                    tot_seats = int(s.get("stcnt", 0) or s.get("cpSeatCnt", 0) or 0)
+
+                    raw_start = str(s.get("scnsrtTm", "") or "")
+                    raw_end = str(s.get("scnendTm", "") or "")
+                    start_tm = f"{raw_start[:2]}:{raw_start[2:]}" if len(raw_start) == 4 else raw_start
+                    end_tm = f"{raw_end[:2]}:{raw_end[2:]}" if len(raw_end) == 4 else raw_end
+                    sch_no = f"{s.get('scnsNo', '')}_{s.get('scnSseq', '')}"
+
+                    has_seats = rest_seats >= threshold
+
+                    parsed_shows.append({
+                        "brand": "CGV",
+                        "schedule_no": sch_no,
+                        "movie_name": mv_name,
+                        "hall_name": combined_desc,
+                        "is_special": is_special,
+                        "is_imax": is_imax,
+                        "start_time": start_tm,
+                        "end_time": end_tm,
+                        "rest_seats": rest_seats,
+                        "total_seats": tot_seats,
+                        "has_seats": has_seats,
+                        "booking_url": "https://cgv.co.kr"
+                    })
+
+                return parsed_shows
+        except Exception as e:
+            self.log(f"CGV 상영시간표 조회 중 오류: {e}")
+            return []
+
+    def query_megabox_showtimes(self, theater_code, target_date, mv_query, is_spc_only, threshold):
+        """메가박스 모바일 API 상영시간표 실시간 쿼리"""
         url = "https://m.megabox.co.kr/on/oh/ohb/SimpleBooking/selectBokdList.do"
         post_data = urllib.parse.urlencode({
             "menuId": "M-RE-TH-02",
             "sortMthd": "3",
-            "brchNo1": brch,
+            "brchNo1": theater_code,
             "playDe": target_date,
             "flag": "BRANCH",
             "sellChnlCd": "MOBILEWEB"
@@ -135,7 +224,7 @@ class CinemaMonitor:
                 raw = res.read().decode("utf-8")
                 d = json.loads(raw)
 
-                sched_list = d.get("scheduleList", [])
+                sched_list = d.get("scheduleList", []) or []
                 parsed_shows = []
 
                 for s in sched_list:
@@ -159,43 +248,62 @@ class CinemaMonitor:
                     has_seats = rest_seats >= threshold
 
                     parsed_shows.append({
+                        "brand": "MEGABOX",
                         "schedule_no": sch_no,
                         "movie_name": mv_name,
                         "hall_name": hall_name,
                         "is_special": is_special,
+                        "is_imax": False,
                         "start_time": start_tm,
                         "end_time": end_tm,
                         "rest_seats": rest_seats,
                         "total_seats": tot_seats,
                         "has_seats": has_seats,
-                        "booking_url": f"https://m.megabox.co.kr/booking"
+                        "booking_url": "https://m.megabox.co.kr/booking"
                     })
 
                 return parsed_shows
         except Exception as e:
-            self.log(f"영화 상영시간표 조회 중 오류: {e}")
+            self.log(f"메가박스 상영시간표 조회 중 오류: {e}")
             return []
+
+    def query_showtimes(self, brand=None, theater_code=None, date=None, movie_filter=None, special_only=None, min_seats=None):
+        b = (brand or self.config.get("brand", "CGV")).upper()
+        th = theater_code or self.config.get("theater_code", "0013" if b == "CGV" else "1351")
+        target_date = (date or self.config.get("date", datetime.now().strftime("%Y%m%d"))).replace("-", "")
+        mv_query = (movie_filter if movie_filter is not None else self.config.get("target_movie", "")).strip().lower()
+        is_spc_only = special_only if special_only is not None else self.config.get("special_hall_only", False)
+        threshold = int(min_seats if min_seats is not None else self.config.get("min_seats", 1))
+
+        if b == "CGV":
+            return self.query_cgv_showtimes(th, target_date, mv_query, is_spc_only, threshold)
+        else:
+            return self.query_megabox_showtimes(th, target_date, mv_query, is_spc_only, threshold)
 
     def send_discord_burst(self, vacant_shows):
         webhook_url = self.config.get("discord", {}).get("webhook_url", "").strip()
         if not webhook_url or not webhook_url.startswith("http"):
             return
 
+        brand = self.config.get("brand", "CGV").upper()
+        brand_nm = "CGV" if brand == "CGV" else "메가박스"
         mention = self.config.get("discord", {}).get("mention", "@everyone")
         th_name = self.config.get("theater_name", "영화관")
         date_str = self.config.get("date", "")
+        booking_link = "https://cgv.co.kr" if brand == "CGV" else "https://m.megabox.co.kr/booking"
 
         show_lines = []
         for s in vacant_shows[:5]:
-            show_lines.append(f"• **[{s['movie_name']}]** {s['start_time']} ({s['hall_name']}) ➔ **잔여 {s['rest_seats']}/{s['total_seats']}석**")
+            spc_tag = " [IMAX]" if s.get("is_imax") else ""
+            show_lines.append(f"• **[{s['movie_name']}]** {s['start_time']} ({s['hall_name']}{spc_tag}) ➔ **잔여 {s['rest_seats']}/{s['total_seats']}석**")
 
         content_text = (
-            f"🎬🎬🎬 **[취소표/예매 오픈!] 영화관 잔여석 감지!** {mention}\n\n"
-            f"📍 **극장**: 메가박스 {th_name}\n"
+            f"🎬🎬🎬 **[취소표/예매 오픈!] {brand_nm} {th_name} 잔여석 감지!** {mention}\n\n"
+            f"📍 **극장**: {brand_nm} {th_name}\n"
             f"📅 **일정**: {date_str}\n"
             f"🎟️ **예매 가능 상영 회차**:\n" + "\n".join(show_lines) + "\n\n"
-            f"🔗 **즉시 예매**: https://m.megabox.co.kr/booking\n"
-            f"⚡ 매진되기 전에 서둘러 좌석을 선점하세요!"
+            f"🔗 **즉시 예매**: {booking_link}\n"
+            f"⚡ 매진되기 전에 서둘러 명당 좌석을 선점하세요!"
         )
 
         for burst_idx in range(1, 4):
@@ -217,10 +325,14 @@ class CinemaMonitor:
         if not url or not url.startswith("http"):
             return False, "웹훅 URL이 올바르지 않습니다."
 
+        brand = self.config.get("brand", "CGV").upper()
+        brand_nm = "CGV" if brand == "CGV" else "메가박스"
+        th_name = self.config.get("theater_name", "용산아이파크몰 [IMAX]" if brand == "CGV" else "코엑스 [돌비]")
+
         payload = {
-            "content": f"🔔 **[영화관 알리미] 디스코드 테스트 알림** @everyone\n"
-                       f"• 영화관 알리미 시스템이 정상 연결되었습니다.\n"
-                       f"• 특별관/명당 취소표 및 티켓 오픈 시 1.5초 간격 3회 연속 진동 푸시가 전송됩니다."
+            "content": f"🔔 **[{brand_nm} 영화관 알리미] 디스코드 테스트 알림** @everyone\n"
+                       f"• {brand_nm} {th_name} 알리미 시스템이 정상 연결되었습니다.\n"
+                       f"• IMAX / 돌비시네마 / 명당 취소표 발생 시 1.5초 간격 3회 연속 진동 푸시가 전송됩니다."
         }
         try:
             req = urllib.request.Request(
@@ -234,8 +346,12 @@ class CinemaMonitor:
             return False, f"발송 실패: {e}"
 
     def _monitor_loop(self):
+        brand = self.config.get("brand", "CGV").upper()
+        brand_nm = "CGV" if brand == "CGV" else "메가박스"
         th_name = self.config.get("theater_name", "영화관")
-        self.log(f"🎬 영화관 모니터링 시작: 메가박스 {th_name} ({self.config.get('date')})")
+        booking_url = "https://cgv.co.kr" if brand == "CGV" else "https://m.megabox.co.kr/booking"
+
+        self.log(f"🎬 영화관 모니터링 시작: {brand_nm} {th_name} ({self.config.get('date')})")
 
         while self.is_running:
             self.check_count += 1
@@ -251,7 +367,7 @@ class CinemaMonitor:
                 sys.stdout.write("\a")
                 sys.stdout.flush()
                 try:
-                    webbrowser.open("https://m.megabox.co.kr/booking")
+                    webbrowser.open(booking_url)
                 except Exception:
                     pass
 
@@ -284,6 +400,7 @@ class CinemaMonitor:
         return {
             "running": self.is_running,
             "check_count": self.check_count,
+            "brand": self.config.get("brand", "CGV"),
             "theater_code": self.config.get("theater_code"),
             "theater_name": self.config.get("theater_name"),
             "date": self.config.get("date"),

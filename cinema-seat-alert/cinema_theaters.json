@@ -1,474 +1,1552 @@
 {
-  "서울": [
-    {
-      "code": "1372",
-      "name": "강남"
-    },
-    {
-      "code": "1341",
-      "name": "강동"
-    },
-    {
-      "code": "0090",
-      "name": "구의이스트폴"
-    },
-    {
-      "code": "1431",
-      "name": "군자"
-    },
-    {
-      "code": "0041",
-      "name": "더부티크목동현대백화점"
-    },
-    {
-      "code": "0073",
-      "name": "동대문"
-    },
-    {
-      "code": "1572",
-      "name": "마곡"
-    },
-    {
-      "code": "1581",
-      "name": "목동"
-    },
-    {
-      "code": "1311",
-      "name": "상봉"
-    },
-    {
-      "code": "1211",
-      "name": "상암월드컵경기장"
-    },
-    {
-      "code": "1371",
-      "name": "센트럴"
-    },
-    {
-      "code": "1381",
-      "name": "송파파크하비오"
-    },
-    {
-      "code": "1202",
-      "name": "신촌"
-    },
-    {
-      "code": "1561",
-      "name": "이수"
-    },
-    {
-      "code": "1351",
-      "name": "코엑스"
-    },
-    {
-      "code": "0081",
-      "name": "픽쳐하우스&#40;휴관&#41;"
-    },
-    {
-      "code": "1212",
-      "name": "홍대&#40;아니메&#41;"
-    },
-    {
-      "code": "0083",
-      "name": "화곡"
-    }
-  ],
-  "경기": [
-    {
-      "code": "4121",
-      "name": "고양스타필드"
-    },
-    {
-      "code": "0029",
-      "name": "광명AK플라자"
-    },
-    {
-      "code": "0053",
-      "name": "광명소하"
-    },
-    {
-      "code": "0035",
-      "name": "금정AK플라자"
-    },
-    {
-      "code": "4152",
-      "name": "김포한강신도시"
-    },
-    {
-      "code": "0019",
-      "name": "남양주현대아울렛스페이스원"
-    },
-    {
-      "code": "4451",
-      "name": "동탄"
-    },
-    {
-      "code": "0089",
-      "name": "동탄역"
-    },
-    {
-      "code": "0084",
-      "name": "미사강변&#40;하남종합운동장&#41;"
-    },
-    {
-      "code": "4104",
-      "name": "백석벨라시타"
-    },
-    {
-      "code": "4722",
-      "name": "별내"
-    },
-    {
-      "code": "4221",
-      "name": "부천스타필드시티"
-    },
-    {
-      "code": "4631",
-      "name": "분당"
-    },
-    {
-      "code": "0086",
-      "name": "성남모란"
-    },
-    {
-      "code": "0051",
-      "name": "수원"
-    },
-    {
-      "code": "0052",
-      "name": "수원AK플라자&#40;수원역&#41;"
-    },
-    {
-      "code": "0042",
-      "name": "수원남문"
-    },
-    {
-      "code": "0062",
-      "name": "수원스타필드"
-    },
-    {
-      "code": "0060",
-      "name": "수원인계"
-    },
-    {
-      "code": "0036",
-      "name": "수원호매실&#40;휴관&#41;"
-    },
-    {
-      "code": "4291",
-      "name": "시흥배곧"
-    },
-    {
-      "code": "0088",
-      "name": "시흥정왕"
-    },
-    {
-      "code": "4253",
-      "name": "안산중앙"
-    },
-    {
-      "code": "0020",
-      "name": "안성스타필드"
-    },
-    {
-      "code": "4462",
-      "name": "용인테크노밸리"
-    },
-    {
-      "code": "0070",
-      "name": "의정부민락"
-    },
-    {
-      "code": "4112",
-      "name": "킨텍스"
-    },
-    {
-      "code": "4132",
-      "name": "파주금촌"
-    },
-    {
-      "code": "4115",
-      "name": "파주운정"
-    },
-    {
-      "code": "0039",
-      "name": "평내호평역&#40;구.남양주&#41;"
-    },
-    {
-      "code": "0064",
-      "name": "평택비전"
-    },
-    {
-      "code": "4651",
-      "name": "하남스타필드"
-    }
-  ],
-  "인천": [
-    {
-      "code": "4041",
-      "name": "검단"
-    },
-    {
-      "code": "4062",
-      "name": "송도&#40;트리플스트리트&#41;"
-    },
-    {
-      "code": "4001",
-      "name": "영종&#40;휴관&#41;"
-    },
-    {
-      "code": "0080",
-      "name": "영종하늘도시"
-    },
-    {
-      "code": "4051",
-      "name": "인천논현"
-    },
-    {
-      "code": "0085",
-      "name": "인천학익&#40;시티오씨엘&#41;"
-    },
-    {
-      "code": "0027",
-      "name": "청라지젤&#40;휴관&#41;"
-    }
-  ],
-  "대전/충청/세종": [
-    {
-      "code": "3141",
-      "name": "공주"
-    },
-    {
-      "code": "0018",
-      "name": "논산"
-    },
-    {
-      "code": "0028",
-      "name": "대전신세계아트앤사이언스"
-    },
-    {
-      "code": "0009",
-      "name": "대전유성"
-    },
-    {
-      "code": "3011",
-      "name": "대전중앙로"
-    },
-    {
-      "code": "0017",
-      "name": "대전현대프리미엄아울렛"
-    },
-    {
-      "code": "3391",
-      "name": "세종&#40;조치원&#41;"
-    },
-    {
-      "code": "3392",
-      "name": "세종나성"
-    },
-    {
-      "code": "3631",
-      "name": "오창"
-    },
-    {
-      "code": "3651",
-      "name": "진천"
-    },
-    {
-      "code": "0056",
-      "name": "천안"
-    },
-    {
-      "code": "0049",
-      "name": "청주사창"
-    },
-    {
-      "code": "0069",
-      "name": "청주성안길"
-    },
-    {
-      "code": "0094",
-      "name": "청주터미널"
-    },
-    {
-      "code": "0068",
-      "name": "충주연수"
-    },
-    {
-      "code": "3501",
-      "name": "홍성내포"
-    }
-  ],
-  "부산/대구/경상": [
-    {
-      "code": "0040",
-      "name": "경북도청"
-    },
-    {
-      "code": "7122",
-      "name": "경산하양"
-    },
-    {
-      "code": "7303",
-      "name": "구미강동"
-    },
-    {
-      "code": "7401",
-      "name": "김천"
-    },
-    {
-      "code": "0074",
-      "name": "남포항"
-    },
-    {
-      "code": "0067",
-      "name": "대구세븐밸리&#40;칠곡&#41;"
-    },
-    {
-      "code": "7011",
-      "name": "대구신세계&#40;동대구&#41;"
-    },
-    {
-      "code": "0022",
-      "name": "대구이시아"
-    },
-    {
-      "code": "0072",
-      "name": "대구프리미엄만경관"
-    },
-    {
-      "code": "6161",
-      "name": "덕천"
-    },
-    {
-      "code": "0076",
-      "name": "마산&#40;경남대&#41;"
-    },
-    {
-      "code": "6001",
-      "name": "부산극장"
-    },
-    {
-      "code": "0061",
-      "name": "부산대"
-    },
-    {
-      "code": "0025",
-      "name": "북대구&#40;칠곡&#41;"
-    },
-    {
-      "code": "0032",
-      "name": "사상"
-    },
-    {
-      "code": "6642",
-      "name": "삼천포"
-    },
-    {
-      "code": "0082",
-      "name": "서면대한"
-    },
-    {
-      "code": "0097",
-      "name": "양산"
-    },
-    {
-      "code": "6262",
-      "name": "양산증산"
-    },
-    {
-      "code": "0057",
-      "name": "울산"
-    },
-    {
-      "code": "0045",
-      "name": "진주&#40;중안&#41;"
-    },
-    {
-      "code": "0048",
-      "name": "창원"
-    },
-    {
-      "code": "0038",
-      "name": "포항"
-    },
-    {
-      "code": "0079",
-      "name": "해운대&#40;장산&#41;"
-    },
-    {
-      "code": "0087",
-      "name": "화명"
-    }
-  ],
-  "광주/전라": [
-    {
-      "code": "5021",
-      "name": "광주상무"
-    },
-    {
-      "code": "5061",
-      "name": "광주하남"
-    },
-    {
-      "code": "5302",
-      "name": "목포하당&#40;포르모&#41;"
-    },
-    {
-      "code": "5401",
-      "name": "순천"
-    },
-    {
-      "code": "5552",
-      "name": "여수웅천"
-    },
-    {
-      "code": "0010",
-      "name": "전대&#40;광주&#41;"
-    },
-    {
-      "code": "0050",
-      "name": "전주객사"
-    },
-    {
-      "code": "0021",
-      "name": "전주혁신"
-    },
-    {
-      "code": "5064",
-      "name": "첨단"
-    }
-  ],
-  "강원": [
-    {
-      "code": "2001",
-      "name": "남춘천"
-    },
-    {
-      "code": "2171",
-      "name": "속초"
-    },
-    {
-      "code": "2202",
-      "name": "원주혁신"
-    },
-    {
-      "code": "0037",
-      "name": "춘천석사"
-    }
-  ],
-  "제주": [
-    {
-      "code": "0059",
-      "name": "제주삼화"
-    },
-    {
-      "code": "0054",
-      "name": "제주서귀포"
-    },
-    {
-      "code": "0066",
-      "name": "제주아라"
-    }
-  ]
+  "CGV": {
+    "서울": [
+      {
+        "code": "0040",
+        "name": "압구정 [IMAX]",
+        "raw_name": "압구정",
+        "is_imax": true
+      },
+      {
+        "code": "0059",
+        "name": "영등포타임스퀘어 [IMAX]",
+        "raw_name": "영등포타임스퀘어",
+        "is_imax": true
+      },
+      {
+        "code": "0074",
+        "name": "왕십리 [IMAX]",
+        "raw_name": "왕십리",
+        "is_imax": true
+      },
+      {
+        "code": "0013",
+        "name": "용산아이파크몰 [IMAX]",
+        "raw_name": "용산아이파크몰",
+        "is_imax": true
+      },
+      {
+        "code": "0199",
+        "name": "천호 [IMAX]",
+        "raw_name": "천호",
+        "is_imax": true
+      },
+      {
+        "code": "0056",
+        "name": "강남",
+        "raw_name": "강남",
+        "is_imax": false
+      },
+      {
+        "code": "0001",
+        "name": "강변",
+        "raw_name": "강변",
+        "is_imax": false
+      },
+      {
+        "code": "0229",
+        "name": "건대입구",
+        "raw_name": "건대입구",
+        "is_imax": false
+      },
+      {
+        "code": "0366",
+        "name": "고덕강일",
+        "raw_name": "고덕강일",
+        "is_imax": false
+      },
+      {
+        "code": "0010",
+        "name": "구로",
+        "raw_name": "구로",
+        "is_imax": false
+      },
+      {
+        "code": "0063",
+        "name": "대학로",
+        "raw_name": "대학로",
+        "is_imax": false
+      },
+      {
+        "code": "0252",
+        "name": "동대문",
+        "raw_name": "동대문",
+        "is_imax": false
+      },
+      {
+        "code": "0230",
+        "name": "등촌",
+        "raw_name": "등촌",
+        "is_imax": false
+      },
+      {
+        "code": "0009",
+        "name": "명동",
+        "raw_name": "명동",
+        "is_imax": false
+      },
+      {
+        "code": "0057",
+        "name": "미아",
+        "raw_name": "미아",
+        "is_imax": false
+      },
+      {
+        "code": "0288",
+        "name": "방학",
+        "raw_name": "방학",
+        "is_imax": false
+      },
+      {
+        "code": "0030",
+        "name": "불광",
+        "raw_name": "불광",
+        "is_imax": false
+      },
+      {
+        "code": "0046",
+        "name": "상봉",
+        "raw_name": "상봉",
+        "is_imax": false
+      },
+      {
+        "code": "0300",
+        "name": "성신여대입구",
+        "raw_name": "성신여대입구",
+        "is_imax": false
+      },
+      {
+        "code": "0276",
+        "name": "수유",
+        "raw_name": "수유",
+        "is_imax": false
+      },
+      {
+        "code": "0150",
+        "name": "신촌아트레온",
+        "raw_name": "신촌아트레온",
+        "is_imax": false
+      },
+      {
+        "code": "P001",
+        "name": "씨네드쉐프 압구정",
+        "raw_name": "씨네드쉐프 압구정",
+        "is_imax": false
+      },
+      {
+        "code": "P013",
+        "name": "씨네드쉐프 용산",
+        "raw_name": "씨네드쉐프 용산",
+        "is_imax": false
+      },
+      {
+        "code": "0112",
+        "name": "여의도",
+        "raw_name": "여의도",
+        "is_imax": false
+      },
+      {
+        "code": "0292",
+        "name": "연남",
+        "raw_name": "연남",
+        "is_imax": false
+      },
+      {
+        "code": "0131",
+        "name": "중계",
+        "raw_name": "중계",
+        "is_imax": false
+      },
+      {
+        "code": "0107",
+        "name": "청담씨네시티",
+        "raw_name": "청담씨네시티",
+        "is_imax": false
+      },
+      {
+        "code": "0223",
+        "name": "피카디리1958",
+        "raw_name": "피카디리1958",
+        "is_imax": false
+      },
+      {
+        "code": "0191",
+        "name": "홍대",
+        "raw_name": "홍대",
+        "is_imax": false
+      }
+    ],
+    "경기": [
+      {
+        "code": "0257",
+        "name": "광교 [IMAX]",
+        "raw_name": "광교",
+        "is_imax": true
+      },
+      {
+        "code": "0106",
+        "name": "동탄 [IMAX]",
+        "raw_name": "동탄",
+        "is_imax": true
+      },
+      {
+        "code": "0143",
+        "name": "소풍 [IMAX]",
+        "raw_name": "소풍",
+        "is_imax": true
+      },
+      {
+        "code": "0113",
+        "name": "의정부 [IMAX]",
+        "raw_name": "의정부",
+        "is_imax": true
+      },
+      {
+        "code": "0054",
+        "name": "일산 [IMAX]",
+        "raw_name": "일산",
+        "is_imax": true
+      },
+      {
+        "code": "0365",
+        "name": "Drive In 용인 크랙사이드",
+        "raw_name": "Drive In 용인 크랙사이드",
+        "is_imax": false
+      },
+      {
+        "code": "0260",
+        "name": "경기광주",
+        "raw_name": "경기광주",
+        "is_imax": false
+      },
+      {
+        "code": "0270",
+        "name": "고양백석",
+        "raw_name": "고양백석",
+        "is_imax": false
+      },
+      {
+        "code": "0374",
+        "name": "고양행신",
+        "raw_name": "고양행신",
+        "is_imax": false
+      },
+      {
+        "code": "0266",
+        "name": "광교상현",
+        "raw_name": "광교상현",
+        "is_imax": false
+      },
+      {
+        "code": "0348",
+        "name": "광명역",
+        "raw_name": "광명역",
+        "is_imax": false
+      },
+      {
+        "code": "0232",
+        "name": "구리",
+        "raw_name": "구리",
+        "is_imax": false
+      },
+      {
+        "code": "0358",
+        "name": "구리갈매",
+        "raw_name": "구리갈매",
+        "is_imax": false
+      },
+      {
+        "code": "0344",
+        "name": "기흥",
+        "raw_name": "기흥",
+        "is_imax": false
+      },
+      {
+        "code": "0278",
+        "name": "김포",
+        "raw_name": "김포",
+        "is_imax": false
+      },
+      {
+        "code": "0188",
+        "name": "김포운양",
+        "raw_name": "김포운양",
+        "is_imax": false
+      },
+      {
+        "code": "0298",
+        "name": "김포한강",
+        "raw_name": "김포한강",
+        "is_imax": false
+      },
+      {
+        "code": "0329",
+        "name": "남양주화도",
+        "raw_name": "남양주화도",
+        "is_imax": false
+      },
+      {
+        "code": "0351",
+        "name": "다산",
+        "raw_name": "다산",
+        "is_imax": false
+      },
+      {
+        "code": "0236",
+        "name": "동두천",
+        "raw_name": "동두천",
+        "is_imax": false
+      },
+      {
+        "code": "0124",
+        "name": "동백",
+        "raw_name": "동백",
+        "is_imax": false
+      },
+      {
+        "code": "0041",
+        "name": "동수원",
+        "raw_name": "동수원",
+        "is_imax": false
+      },
+      {
+        "code": "0359",
+        "name": "동탄그랑파사쥬",
+        "raw_name": "동탄그랑파사쥬",
+        "is_imax": false
+      },
+      {
+        "code": "0265",
+        "name": "동탄역",
+        "raw_name": "동탄역",
+        "is_imax": false
+      },
+      {
+        "code": "0233",
+        "name": "동탄호수공원",
+        "raw_name": "동탄호수공원",
+        "is_imax": false
+      },
+      {
+        "code": "0226",
+        "name": "배곧",
+        "raw_name": "배곧",
+        "is_imax": false
+      },
+      {
+        "code": "0155",
+        "name": "범계",
+        "raw_name": "범계",
+        "is_imax": false
+      },
+      {
+        "code": "0015",
+        "name": "부천",
+        "raw_name": "부천",
+        "is_imax": false
+      },
+      {
+        "code": "0194",
+        "name": "부천역",
+        "raw_name": "부천역",
+        "is_imax": false
+      },
+      {
+        "code": "0242",
+        "name": "산본",
+        "raw_name": "산본",
+        "is_imax": false
+      },
+      {
+        "code": "0196",
+        "name": "서현",
+        "raw_name": "서현",
+        "is_imax": false
+      },
+      {
+        "code": "0274",
+        "name": "스타필드시티위례",
+        "raw_name": "스타필드시티위례",
+        "is_imax": false
+      },
+      {
+        "code": "0055",
+        "name": "신세계경기",
+        "raw_name": "신세계경기",
+        "is_imax": false
+      },
+      {
+        "code": "0211",
+        "name": "안산",
+        "raw_name": "안산",
+        "is_imax": false
+      },
+      {
+        "code": "0279",
+        "name": "안성",
+        "raw_name": "안성",
+        "is_imax": false
+      },
+      {
+        "code": "0003",
+        "name": "야탑",
+        "raw_name": "야탑",
+        "is_imax": false
+      },
+      {
+        "code": "0262",
+        "name": "양주옥정",
+        "raw_name": "양주옥정",
+        "is_imax": false
+      },
+      {
+        "code": "0338",
+        "name": "역곡",
+        "raw_name": "역곡",
+        "is_imax": false
+      },
+      {
+        "code": "0004",
+        "name": "오리",
+        "raw_name": "오리",
+        "is_imax": false
+      },
+      {
+        "code": "0307",
+        "name": "오산중앙",
+        "raw_name": "오산중앙",
+        "is_imax": false
+      },
+      {
+        "code": "0271",
+        "name": "용인",
+        "raw_name": "용인",
+        "is_imax": false
+      },
+      {
+        "code": "0205",
+        "name": "이천",
+        "raw_name": "이천",
+        "is_imax": false
+      },
+      {
+        "code": "0148",
+        "name": "파주문산",
+        "raw_name": "파주문산",
+        "is_imax": false
+      },
+      {
+        "code": "0371",
+        "name": "파주운정",
+        "raw_name": "파주운정",
+        "is_imax": false
+      },
+      {
+        "code": "0195",
+        "name": "평촌",
+        "raw_name": "평촌",
+        "is_imax": false
+      },
+      {
+        "code": "0052",
+        "name": "평택",
+        "raw_name": "평택",
+        "is_imax": false
+      },
+      {
+        "code": "0334",
+        "name": "평택고덕",
+        "raw_name": "평택고덕",
+        "is_imax": false
+      },
+      {
+        "code": "0214",
+        "name": "평택소사",
+        "raw_name": "평택소사",
+        "is_imax": false
+      },
+      {
+        "code": "0309",
+        "name": "포천",
+        "raw_name": "포천",
+        "is_imax": false
+      },
+      {
+        "code": "0301",
+        "name": "화성봉담",
+        "raw_name": "화성봉담",
+        "is_imax": false
+      },
+      {
+        "code": "0145",
+        "name": "화정",
+        "raw_name": "화정",
+        "is_imax": false
+      }
+    ],
+    "인천": [
+      {
+        "code": "0002",
+        "name": "인천 [IMAX]",
+        "raw_name": "인천",
+        "is_imax": true
+      },
+      {
+        "code": "0043",
+        "name": "계양",
+        "raw_name": "계양",
+        "is_imax": false
+      },
+      {
+        "code": "0021",
+        "name": "부평",
+        "raw_name": "부평",
+        "is_imax": false
+      },
+      {
+        "code": "0325",
+        "name": "송도타임스페이스",
+        "raw_name": "송도타임스페이스",
+        "is_imax": false
+      },
+      {
+        "code": "0296",
+        "name": "인천가정",
+        "raw_name": "인천가정",
+        "is_imax": false
+      },
+      {
+        "code": "0340",
+        "name": "인천도화",
+        "raw_name": "인천도화",
+        "is_imax": false
+      },
+      {
+        "code": "0352",
+        "name": "인천시민공원",
+        "raw_name": "인천시민공원",
+        "is_imax": false
+      },
+      {
+        "code": "0258",
+        "name": "인천연수",
+        "raw_name": "인천연수",
+        "is_imax": false
+      },
+      {
+        "code": "0269",
+        "name": "인천학익",
+        "raw_name": "인천학익",
+        "is_imax": false
+      },
+      {
+        "code": "0308",
+        "name": "주안역",
+        "raw_name": "주안역",
+        "is_imax": false
+      },
+      {
+        "code": "0235",
+        "name": "청라",
+        "raw_name": "청라",
+        "is_imax": false
+      }
+    ],
+    "강원": [
+      {
+        "code": "0070",
+        "name": "춘천 [IMAX]",
+        "raw_name": "춘천",
+        "is_imax": true
+      },
+      {
+        "code": "0139",
+        "name": "강릉",
+        "raw_name": "강릉",
+        "is_imax": false
+      },
+      {
+        "code": "0355",
+        "name": "기린",
+        "raw_name": "기린",
+        "is_imax": false
+      },
+      {
+        "code": "0354",
+        "name": "원통",
+        "raw_name": "원통",
+        "is_imax": false
+      },
+      {
+        "code": "0281",
+        "name": "인제",
+        "raw_name": "인제",
+        "is_imax": false
+      }
+    ],
+    "대전/충청/세종": [
+      {
+        "code": "0007",
+        "name": "대전 [IMAX]",
+        "raw_name": "대전",
+        "is_imax": true
+      },
+      {
+        "code": "0127",
+        "name": "대전터미널 [IMAX]",
+        "raw_name": "대전터미널",
+        "is_imax": true
+      },
+      {
+        "code": "0110",
+        "name": "천안펜타포트 [IMAX]",
+        "raw_name": "천안펜타포트",
+        "is_imax": true
+      },
+      {
+        "code": "0370",
+        "name": "논산",
+        "raw_name": "논산",
+        "is_imax": false
+      },
+      {
+        "code": "0207",
+        "name": "당진",
+        "raw_name": "당진",
+        "is_imax": false
+      },
+      {
+        "code": "0286",
+        "name": "대전가수원",
+        "raw_name": "대전가수원",
+        "is_imax": false
+      },
+      {
+        "code": "0154",
+        "name": "대전가오",
+        "raw_name": "대전가오",
+        "is_imax": false
+      },
+      {
+        "code": "0202",
+        "name": "대전탄방",
+        "raw_name": "대전탄방",
+        "is_imax": false
+      },
+      {
+        "code": "0091",
+        "name": "서산",
+        "raw_name": "서산",
+        "is_imax": false
+      },
+      {
+        "code": "0219",
+        "name": "세종",
+        "raw_name": "세종",
+        "is_imax": false
+      },
+      {
+        "code": "0356",
+        "name": "아산",
+        "raw_name": "아산",
+        "is_imax": false
+      },
+      {
+        "code": "0206",
+        "name": "유성노은",
+        "raw_name": "유성노은",
+        "is_imax": false
+      },
+      {
+        "code": "0369",
+        "name": "천안",
+        "raw_name": "천안",
+        "is_imax": false
+      },
+      {
+        "code": "0293",
+        "name": "천안터미널",
+        "raw_name": "천안터미널",
+        "is_imax": false
+      },
+      {
+        "code": "0228",
+        "name": "청주(서문)",
+        "raw_name": "청주(서문)",
+        "is_imax": false
+      },
+      {
+        "code": "0142",
+        "name": "청주지웰시티",
+        "raw_name": "청주지웰시티",
+        "is_imax": false
+      },
+      {
+        "code": "0319",
+        "name": "청주터미널",
+        "raw_name": "청주터미널",
+        "is_imax": false
+      },
+      {
+        "code": "0284",
+        "name": "충북혁신",
+        "raw_name": "충북혁신",
+        "is_imax": false
+      },
+      {
+        "code": "0328",
+        "name": "충주교현",
+        "raw_name": "충주교현",
+        "is_imax": false
+      },
+      {
+        "code": "0377",
+        "name": "홍성",
+        "raw_name": "홍성",
+        "is_imax": false
+      }
+    ],
+    "대구": [
+      {
+        "code": "0345",
+        "name": "대구 [IMAX]",
+        "raw_name": "대구",
+        "is_imax": true
+      },
+      {
+        "code": "0375",
+        "name": "대구수성 [IMAX]",
+        "raw_name": "대구수성",
+        "is_imax": true
+      },
+      {
+        "code": "0108",
+        "name": "대구스타디움 [IMAX]",
+        "raw_name": "대구스타디움",
+        "is_imax": true
+      },
+      {
+        "code": "0343",
+        "name": "대구연경",
+        "raw_name": "대구연경",
+        "is_imax": false
+      },
+      {
+        "code": "0216",
+        "name": "대구월성",
+        "raw_name": "대구월성",
+        "is_imax": false
+      },
+      {
+        "code": "0256",
+        "name": "대구죽전",
+        "raw_name": "대구죽전",
+        "is_imax": false
+      },
+      {
+        "code": "0147",
+        "name": "대구한일",
+        "raw_name": "대구한일",
+        "is_imax": false
+      },
+      {
+        "code": "0109",
+        "name": "대구현대",
+        "raw_name": "대구현대",
+        "is_imax": false
+      }
+    ],
+    "부산/울산": [
+      {
+        "code": "0005",
+        "name": "서면 [IMAX]",
+        "raw_name": "서면",
+        "is_imax": true
+      },
+      {
+        "code": "0128",
+        "name": "울산삼산 [IMAX]",
+        "raw_name": "울산삼산",
+        "is_imax": true
+      },
+      {
+        "code": "0367",
+        "name": "Drive In 영도",
+        "raw_name": "Drive In 영도",
+        "is_imax": false
+      },
+      {
+        "code": "0061",
+        "name": "대연",
+        "raw_name": "대연",
+        "is_imax": false
+      },
+      {
+        "code": "0042",
+        "name": "동래",
+        "raw_name": "동래",
+        "is_imax": false
+      },
+      {
+        "code": "0337",
+        "name": "부산명지",
+        "raw_name": "부산명지",
+        "is_imax": false
+      },
+      {
+        "code": "0285",
+        "name": "서면삼정타워",
+        "raw_name": "서면삼정타워",
+        "is_imax": false
+      },
+      {
+        "code": "0303",
+        "name": "서면상상마당",
+        "raw_name": "서면상상마당",
+        "is_imax": false
+      },
+      {
+        "code": "0089",
+        "name": "센텀시티",
+        "raw_name": "센텀시티",
+        "is_imax": false
+      },
+      {
+        "code": "P004",
+        "name": "씨네드쉐프 센텀",
+        "raw_name": "씨네드쉐프 센텀",
+        "is_imax": false
+      },
+      {
+        "code": "0160",
+        "name": "아시아드",
+        "raw_name": "아시아드",
+        "is_imax": false
+      },
+      {
+        "code": "0335",
+        "name": "울산동구",
+        "raw_name": "울산동구",
+        "is_imax": false
+      },
+      {
+        "code": "0333",
+        "name": "울산성남",
+        "raw_name": "울산성남",
+        "is_imax": false
+      },
+      {
+        "code": "0264",
+        "name": "울산신천",
+        "raw_name": "울산신천",
+        "is_imax": false
+      },
+      {
+        "code": "0246",
+        "name": "울산진장",
+        "raw_name": "울산진장",
+        "is_imax": false
+      },
+      {
+        "code": "0306",
+        "name": "정관",
+        "raw_name": "정관",
+        "is_imax": false
+      },
+      {
+        "code": "0245",
+        "name": "하단아트몰링",
+        "raw_name": "하단아트몰링",
+        "is_imax": false
+      },
+      {
+        "code": "0318",
+        "name": "해운대",
+        "raw_name": "해운대",
+        "is_imax": false
+      }
+    ],
+    "경상": [
+      {
+        "code": "0097",
+        "name": "북포항 [IMAX]",
+        "raw_name": "북포항",
+        "is_imax": true
+      },
+      {
+        "code": "0079",
+        "name": "창원더시티 [IMAX]",
+        "raw_name": "창원더시티",
+        "is_imax": true
+      },
+      {
+        "code": "0263",
+        "name": "거제",
+        "raw_name": "거제",
+        "is_imax": false
+      },
+      {
+        "code": "0323",
+        "name": "고성",
+        "raw_name": "고성",
+        "is_imax": false
+      },
+      {
+        "code": "0053",
+        "name": "구미",
+        "raw_name": "구미",
+        "is_imax": false
+      },
+      {
+        "code": "0240",
+        "name": "김천율곡",
+        "raw_name": "김천율곡",
+        "is_imax": false
+      },
+      {
+        "code": "0028",
+        "name": "김해",
+        "raw_name": "김해",
+        "is_imax": false
+      },
+      {
+        "code": "0311",
+        "name": "김해율하",
+        "raw_name": "김해율하",
+        "is_imax": false
+      },
+      {
+        "code": "0239",
+        "name": "김해장유",
+        "raw_name": "김해장유",
+        "is_imax": false
+      },
+      {
+        "code": "0033",
+        "name": "마산",
+        "raw_name": "마산",
+        "is_imax": false
+      },
+      {
+        "code": "0272",
+        "name": "안동",
+        "raw_name": "안동",
+        "is_imax": false
+      },
+      {
+        "code": "0234",
+        "name": "양산삼호",
+        "raw_name": "양산삼호",
+        "is_imax": false
+      },
+      {
+        "code": "0324",
+        "name": "진주혁신",
+        "raw_name": "진주혁신",
+        "is_imax": false
+      },
+      {
+        "code": "0283",
+        "name": "창원상남",
+        "raw_name": "창원상남",
+        "is_imax": false
+      }
+    ],
+    "광주/전라/제주": [
+      {
+        "code": "0179",
+        "name": "전주효자 [IMAX]",
+        "raw_name": "전주효자",
+        "is_imax": true
+      },
+      {
+        "code": "0220",
+        "name": "광양",
+        "raw_name": "광양",
+        "is_imax": false
+      },
+      {
+        "code": "0221",
+        "name": "광양 엘에프스퀘어",
+        "raw_name": "광양 엘에프스퀘어",
+        "is_imax": false
+      },
+      {
+        "code": "0295",
+        "name": "광주금남로",
+        "raw_name": "광주금남로",
+        "is_imax": false
+      },
+      {
+        "code": "0193",
+        "name": "광주상무",
+        "raw_name": "광주상무",
+        "is_imax": false
+      },
+      {
+        "code": "0210",
+        "name": "광주용봉",
+        "raw_name": "광주용봉",
+        "is_imax": false
+      },
+      {
+        "code": "0218",
+        "name": "광주첨단",
+        "raw_name": "광주첨단",
+        "is_imax": false
+      },
+      {
+        "code": "0244",
+        "name": "광주충장로",
+        "raw_name": "광주충장로",
+        "is_imax": false
+      },
+      {
+        "code": "0215",
+        "name": "광주하남",
+        "raw_name": "광주하남",
+        "is_imax": false
+      },
+      {
+        "code": "0237",
+        "name": "나주",
+        "raw_name": "나주",
+        "is_imax": false
+      },
+      {
+        "code": "0280",
+        "name": "목포평화광장",
+        "raw_name": "목포평화광장",
+        "is_imax": false
+      },
+      {
+        "code": "0225",
+        "name": "서전주",
+        "raw_name": "서전주",
+        "is_imax": false
+      },
+      {
+        "code": "0268",
+        "name": "순천신대",
+        "raw_name": "순천신대",
+        "is_imax": false
+      },
+      {
+        "code": "0315",
+        "name": "여수웅천",
+        "raw_name": "여수웅천",
+        "is_imax": false
+      },
+      {
+        "code": "0020",
+        "name": "익산",
+        "raw_name": "익산",
+        "is_imax": false
+      },
+      {
+        "code": "0213",
+        "name": "전주고사",
+        "raw_name": "전주고사",
+        "is_imax": false
+      },
+      {
+        "code": "0336",
+        "name": "전주에코시티",
+        "raw_name": "전주에코시티",
+        "is_imax": false
+      },
+      {
+        "code": "0186",
+        "name": "정읍",
+        "raw_name": "정읍",
+        "is_imax": false
+      },
+      {
+        "code": "0302",
+        "name": "제주",
+        "raw_name": "제주",
+        "is_imax": false
+      },
+      {
+        "code": "0259",
+        "name": "제주노형",
+        "raw_name": "제주노형",
+        "is_imax": false
+      }
+    ]
+  },
+  "MEGABOX": {
+    "서울": [
+      {
+        "code": "1372",
+        "name": "강남"
+      },
+      {
+        "code": "1341",
+        "name": "강동"
+      },
+      {
+        "code": "0090",
+        "name": "구의이스트폴"
+      },
+      {
+        "code": "1431",
+        "name": "군자"
+      },
+      {
+        "code": "0041",
+        "name": "더부티크목동현대백화점"
+      },
+      {
+        "code": "0073",
+        "name": "동대문"
+      },
+      {
+        "code": "1572",
+        "name": "마곡"
+      },
+      {
+        "code": "1581",
+        "name": "목동"
+      },
+      {
+        "code": "1311",
+        "name": "상봉"
+      },
+      {
+        "code": "1211",
+        "name": "상암월드컵경기장"
+      },
+      {
+        "code": "1371",
+        "name": "센트럴"
+      },
+      {
+        "code": "1381",
+        "name": "송파파크하비오"
+      },
+      {
+        "code": "1202",
+        "name": "신촌"
+      },
+      {
+        "code": "1561",
+        "name": "이수"
+      },
+      {
+        "code": "1351",
+        "name": "코엑스"
+      },
+      {
+        "code": "0081",
+        "name": "픽쳐하우스&#40;휴관&#41;"
+      },
+      {
+        "code": "1212",
+        "name": "홍대&#40;아니메&#41;"
+      },
+      {
+        "code": "0083",
+        "name": "화곡"
+      }
+    ],
+    "경기": [
+      {
+        "code": "4121",
+        "name": "고양스타필드"
+      },
+      {
+        "code": "0029",
+        "name": "광명AK플라자"
+      },
+      {
+        "code": "0053",
+        "name": "광명소하"
+      },
+      {
+        "code": "0035",
+        "name": "금정AK플라자"
+      },
+      {
+        "code": "4152",
+        "name": "김포한강신도시"
+      },
+      {
+        "code": "0019",
+        "name": "남양주현대아울렛스페이스원"
+      },
+      {
+        "code": "4451",
+        "name": "동탄"
+      },
+      {
+        "code": "0089",
+        "name": "동탄역"
+      },
+      {
+        "code": "0084",
+        "name": "미사강변&#40;하남종합운동장&#41;"
+      },
+      {
+        "code": "4104",
+        "name": "백석벨라시타"
+      },
+      {
+        "code": "4722",
+        "name": "별내"
+      },
+      {
+        "code": "4221",
+        "name": "부천스타필드시티"
+      },
+      {
+        "code": "4631",
+        "name": "분당"
+      },
+      {
+        "code": "0086",
+        "name": "성남모란"
+      },
+      {
+        "code": "0051",
+        "name": "수원"
+      },
+      {
+        "code": "0052",
+        "name": "수원AK플라자&#40;수원역&#41;"
+      },
+      {
+        "code": "0042",
+        "name": "수원남문"
+      },
+      {
+        "code": "0062",
+        "name": "수원스타필드"
+      },
+      {
+        "code": "0060",
+        "name": "수원인계"
+      },
+      {
+        "code": "0036",
+        "name": "수원호매실&#40;휴관&#41;"
+      },
+      {
+        "code": "4291",
+        "name": "시흥배곧"
+      },
+      {
+        "code": "0088",
+        "name": "시흥정왕"
+      },
+      {
+        "code": "4253",
+        "name": "안산중앙"
+      },
+      {
+        "code": "0020",
+        "name": "안성스타필드"
+      },
+      {
+        "code": "4462",
+        "name": "용인테크노밸리"
+      },
+      {
+        "code": "0070",
+        "name": "의정부민락"
+      },
+      {
+        "code": "4112",
+        "name": "킨텍스"
+      },
+      {
+        "code": "4132",
+        "name": "파주금촌"
+      },
+      {
+        "code": "4115",
+        "name": "파주운정"
+      },
+      {
+        "code": "0039",
+        "name": "평내호평역&#40;구.남양주&#41;"
+      },
+      {
+        "code": "0064",
+        "name": "평택비전"
+      },
+      {
+        "code": "4651",
+        "name": "하남스타필드"
+      }
+    ],
+    "인천": [
+      {
+        "code": "4041",
+        "name": "검단"
+      },
+      {
+        "code": "4062",
+        "name": "송도&#40;트리플스트리트&#41;"
+      },
+      {
+        "code": "4001",
+        "name": "영종&#40;휴관&#41;"
+      },
+      {
+        "code": "0080",
+        "name": "영종하늘도시"
+      },
+      {
+        "code": "4051",
+        "name": "인천논현"
+      },
+      {
+        "code": "0085",
+        "name": "인천학익&#40;시티오씨엘&#41;"
+      },
+      {
+        "code": "0027",
+        "name": "청라지젤&#40;휴관&#41;"
+      }
+    ],
+    "대전/충청/세종": [
+      {
+        "code": "3141",
+        "name": "공주"
+      },
+      {
+        "code": "0018",
+        "name": "논산"
+      },
+      {
+        "code": "0028",
+        "name": "대전신세계아트앤사이언스"
+      },
+      {
+        "code": "0009",
+        "name": "대전유성"
+      },
+      {
+        "code": "3011",
+        "name": "대전중앙로"
+      },
+      {
+        "code": "0017",
+        "name": "대전현대프리미엄아울렛"
+      },
+      {
+        "code": "3391",
+        "name": "세종&#40;조치원&#41;"
+      },
+      {
+        "code": "3392",
+        "name": "세종나성"
+      },
+      {
+        "code": "3631",
+        "name": "오창"
+      },
+      {
+        "code": "3651",
+        "name": "진천"
+      },
+      {
+        "code": "0056",
+        "name": "천안"
+      },
+      {
+        "code": "0049",
+        "name": "청주사창"
+      },
+      {
+        "code": "0069",
+        "name": "청주성안길"
+      },
+      {
+        "code": "0094",
+        "name": "청주터미널"
+      },
+      {
+        "code": "0068",
+        "name": "충주연수"
+      },
+      {
+        "code": "3501",
+        "name": "홍성내포"
+      }
+    ],
+    "부산/대구/경상": [
+      {
+        "code": "0040",
+        "name": "경북도청"
+      },
+      {
+        "code": "7122",
+        "name": "경산하양"
+      },
+      {
+        "code": "7303",
+        "name": "구미강동"
+      },
+      {
+        "code": "7401",
+        "name": "김천"
+      },
+      {
+        "code": "0074",
+        "name": "남포항"
+      },
+      {
+        "code": "0067",
+        "name": "대구세븐밸리&#40;칠곡&#41;"
+      },
+      {
+        "code": "7011",
+        "name": "대구신세계&#40;동대구&#41;"
+      },
+      {
+        "code": "0022",
+        "name": "대구이시아"
+      },
+      {
+        "code": "0072",
+        "name": "대구프리미엄만경관"
+      },
+      {
+        "code": "6161",
+        "name": "덕천"
+      },
+      {
+        "code": "0076",
+        "name": "마산&#40;경남대&#41;"
+      },
+      {
+        "code": "6001",
+        "name": "부산극장"
+      },
+      {
+        "code": "0061",
+        "name": "부산대"
+      },
+      {
+        "code": "0025",
+        "name": "북대구&#40;칠곡&#41;"
+      },
+      {
+        "code": "0032",
+        "name": "사상"
+      },
+      {
+        "code": "6642",
+        "name": "삼천포"
+      },
+      {
+        "code": "0082",
+        "name": "서면대한"
+      },
+      {
+        "code": "0097",
+        "name": "양산"
+      },
+      {
+        "code": "6262",
+        "name": "양산증산"
+      },
+      {
+        "code": "0057",
+        "name": "울산"
+      },
+      {
+        "code": "0045",
+        "name": "진주&#40;중안&#41;"
+      },
+      {
+        "code": "0048",
+        "name": "창원"
+      },
+      {
+        "code": "0038",
+        "name": "포항"
+      },
+      {
+        "code": "0079",
+        "name": "해운대&#40;장산&#41;"
+      },
+      {
+        "code": "0087",
+        "name": "화명"
+      }
+    ],
+    "광주/전라": [
+      {
+        "code": "5021",
+        "name": "광주상무"
+      },
+      {
+        "code": "5061",
+        "name": "광주하남"
+      },
+      {
+        "code": "5302",
+        "name": "목포하당&#40;포르모&#41;"
+      },
+      {
+        "code": "5401",
+        "name": "순천"
+      },
+      {
+        "code": "5552",
+        "name": "여수웅천"
+      },
+      {
+        "code": "0010",
+        "name": "전대&#40;광주&#41;"
+      },
+      {
+        "code": "0050",
+        "name": "전주객사"
+      },
+      {
+        "code": "0021",
+        "name": "전주혁신"
+      },
+      {
+        "code": "5064",
+        "name": "첨단"
+      }
+    ],
+    "강원": [
+      {
+        "code": "2001",
+        "name": "남춘천"
+      },
+      {
+        "code": "2171",
+        "name": "속초"
+      },
+      {
+        "code": "2202",
+        "name": "원주혁신"
+      },
+      {
+        "code": "0037",
+        "name": "춘천석사"
+      }
+    ],
+    "제주": [
+      {
+        "code": "0059",
+        "name": "제주삼화"
+      },
+      {
+        "code": "0054",
+        "name": "제주서귀포"
+      },
+      {
+        "code": "0066",
+        "name": "제주아라"
+      }
+    ]
+  }
 }
