@@ -173,6 +173,8 @@ class UosCampusMonitor:
             last_title = self._html_title(raw) or "(제목 없음)"
             self._lib_session_warm = False  # 세션이 무효해진 것으로 보고 다음 시도에 재워밍
             time.sleep(0.8)
+        if "/error/session" in (final_url or ""):
+            raise RuntimeError("IP 차단: 도서관 서버가 이 서버(클라우드/해외 IP)의 접속을 거부합니다. 국내 PC에서 실행할 때만 조회됩니다.")
         raise RuntimeError(f"도서관 서버가 JSON 대신 웹페이지를 반환 — 페이지 제목: '{last_title}' (마지막 URL: {final_url})")
 
     def fetch_library_seats(self):

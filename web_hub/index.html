@@ -2656,11 +2656,14 @@
         const rooms = data.rooms || [];
         const errors = data.errors || [];
         campusLoaded.library = true;
-        const errHtml = errors.length
-          ? `<div style="grid-column: 1 / -1; font-size: 12px; color: #fbbf24; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: var(--radius-sm); padding: 8px 12px;">⚠️ 일부 도서관 조회 실패 — ${errors.map(e => `<b>${esc(e.lib)}</b>: ${esc(e.error)}`).join(' / ')}<br><span style="color: var(--text-dim);">서버가 해외/클라우드 IP면 도서관 서버가 차단할 수 있습니다.</span></div>`
-          : '';
+        const allBlocked = errors.length > 0 && errors.every(e => /IP 차단/.test(e.error));
+        const errHtml = allBlocked
+          ? `<div style="grid-column: 1 / -1; font-size: 12.5px; color: #fbbf24; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: var(--radius-sm); padding: 10px 12px; line-height: 1.6;">🚫 <b>도서관 서버가 이 허브 서버의 IP(클라우드)를 차단</b>하고 있어 열람실 좌석을 가져올 수 없습니다.<br><span style="color: var(--text-muted);">열람실 좌석은 국내 PC에서 허브를 실행할 때만 조회됩니다. 다른 알리미(버스·열차·영화·항공·수강·공지)는 영향 없습니다.</span></div>`
+          : errors.length
+            ? `<div style="grid-column: 1 / -1; font-size: 12px; color: #fbbf24; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: var(--radius-sm); padding: 8px 12px;">⚠️ 일부 도서관 조회 실패 — ${errors.map(e => `<b>${esc(e.lib)}</b>: ${esc(e.error)}`).join(' / ')}</div>`
+            : '';
         const stamp = `<div style="grid-column: 1 / -1; font-size: 11.5px; color: var(--text-dim); text-align: right;">기준 ${esc(data.fetched_at || '')} · 중앙/건축/경영도서관 ${rooms.length}개 열람실</div>`;
-        if (rooms.length === 0) { grid.innerHTML = errHtml + '<div style="color: var(--text-dim); padding: 20px;">조회된 열람실이 없습니다.</div>'; return; }
+        if (rooms.length === 0) { grid.innerHTML = errHtml + (allBlocked ? '' : '<div style="color: var(--text-dim); padding: 20px;">조회된 열람실이 없습니다.</div>'); return; }
         grid.innerHTML = errHtml + rooms.map(r => {
           let badge = 'badge-success', txt = '여유';
           if (r.occupancy_rate >= 80) { badge = 'badge-danger'; txt = '혼잡'; }
