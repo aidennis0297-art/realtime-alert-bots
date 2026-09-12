@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import time
 import json
@@ -108,6 +109,72 @@ class UosCampusMonitor:
         except Exception:
             pass
 
+    LIB_HEADERS = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Referer": "https://library.uos.ac.kr/",
+        "Origin": "https://library.uos.ac.kr",
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8",
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "X-Requested-With": "XMLHttpRequest"
+    }
+
+    def _lib_opener(self):
+        """도서관 사이트용 쿠키 세션 (일부 환경에서 세션 쿠키 없이는 HTML 메인 페이지로 튕김)"""
+        if getattr(self, "_lib_session", None) is None:
+            import http.cookiejar
+            jar = http.cookiejar.CookieJar()
+            self._lib_session = urllib.request.build_opener(
+                urllib.request.HTTPCookieProcessor(jar),
+                urllib.request.HTTPSHandler(context=self.ctx)
+            )
+            self._lib_session_warm = False
+        return self._lib_session
+
+    def _lib_warmup(self):
+        """메인 페이지 GET으로 세션 쿠키 확보"""
+        opener = self._lib_opener()
+        req = urllib.request.Request("https://library.uos.ac.kr/", headers={
+            "User-Agent": self.LIB_HEADERS["User-Agent"],
+            "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
+            "Accept-Language": self.LIB_HEADERS["Accept-Language"],
+        })
+        with opener.open(req, timeout=10) as res:
+            res.read()
+        self._lib_session_warm = True
+
+    @staticmethod
+    def _html_title(raw):
+        m = re.search(r"<title[^>]*>(.*?)</title>", raw, re.S | re.I)
+        return re.sub(r"\s+", " ", m.group(1)).strip()[:60] if m else ""
+
+    def _lib_request(self, lib):
+        """seatStatus 호출 → JSON dict. HTML이 오면 세션 워밍업 후 재시도, 그래도 HTML이면 페이지 제목과 함께 실패."""
+        opener = self._lib_opener()
+        url = "https://library.uos.ac.kr/seatStatus"
+        last_title = ""
+        for attempt in range(3):
+            if attempt >= 1 and not self._lib_session_warm:
+                try:
+                    self._lib_warmup()
+                except Exception:
+                    pass
+            data = f"lib={lib}&time={int(time.time() * 1000)}".encode("utf-8")
+            req = urllib.request.Request(url, data=data, headers=self.LIB_HEADERS)
+            if attempt == 2:
+                # 마지막 시도: GET 방식
+                req = urllib.request.Request(f"{url}?lib={lib}&time={int(time.time() * 1000)}", headers=self.LIB_HEADERS)
+            with opener.open(req, timeout=10) as res:
+                raw = res.read().decode("utf-8", "replace")
+                final_url = res.geturl()
+            stripped = raw.lstrip()
+            if stripped.startswith("{") or stripped.startswith("["):
+                return json.loads(raw)
+            last_title = self._html_title(raw) or "(제목 없음)"
+            self._lib_session_warm = False  # 세션이 무효해진 것으로 보고 다음 시도에 재워밍
+            time.sleep(0.8)
+        raise RuntimeError(f"도서관 서버가 JSON 대신 웹페이지를 반환 — 페이지 제목: '{last_title}' (마지막 URL: {final_url})")
+
     def fetch_library_seats(self):
         """중앙도서관, 건축도서관, 경영도서관 등 전체 열람실 실시간 잔여석 조회"""
         lib_map = {
@@ -118,37 +185,8 @@ class UosCampusMonitor:
         rooms = []
         self.last_library_errors = []
         for lib, lib_name in lib_map.items():
-            url = "https://library.uos.ac.kr/seatStatus"
-            data = f"lib={lib}&time={int(time.time() * 1000)}".encode("utf-8")
-            req = urllib.request.Request(
-                url,
-                data=data,
-                headers={
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-                    "Referer": "https://library.uos.ac.kr/",
-                    "Origin": "https://library.uos.ac.kr",
-                    "Accept": "application/json, text/javascript, */*; q=0.01",
-                    "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-                    "X-Requested-With": "XMLHttpRequest"
-                }
-            )
             try:
-                raw = None
-                last_err = None
-                for attempt in range(2):  # 일시 오류 1회 재시도
-                    try:
-                        with urllib.request.urlopen(req, context=self.ctx, timeout=10) as res:
-                            raw = res.read().decode("utf-8")
-                        break
-                    except Exception as e:
-                        last_err = e
-                        time.sleep(1)
-                if raw is None:
-                    raise last_err
-                try:
-                    d = json.loads(raw)
-                except Exception:
-                    raise RuntimeError(f"JSON 아님 (HTTP 본문 앞부분: {raw[:80]!r})")
+                d = self._lib_request(lib)
                 items = d.get("seatStatus", {}).get("root", {}).get("item", [])
                 if isinstance(items, dict):
                     items = [items]
@@ -170,7 +208,7 @@ class UosCampusMonitor:
                         "occupancy_rate": rate
                     })
             except Exception as e:
-                self.last_library_errors.append({"lib": lib_name, "error": str(e)[:160]})
+                self.last_library_errors.append({"lib": lib_name, "error": str(e)[:200]})
                 self.log(f"[{lib_name}] 좌석 조회 오류: {e}")
         return rooms
 
