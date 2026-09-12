@@ -624,8 +624,6 @@ def notify_tunnel_url(url, force=False):
     qr = "https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=" + url
     invite = (SETTINGS.get("invite_code") or "").strip()
     desc = "👉 **[여기를 눌러 접속]({0})**".format(url)
-    if prev and prev != url:
-        desc += "\n\n이전 주소: ~~{0}~~ (더 이상 사용 불가)".format(prev)
     if invite:
         desc += "\n초대코드: `{0}`".format(invite)
     desc += "\n\n📱 QR을 폰 카메라로 스캔해도 됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있어요."
