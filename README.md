@@ -169,6 +169,13 @@ data/
 - 코드 업데이트: `sudo bash /opt/realtime-alert-bots/deploy/update.sh` · 로그: `journalctl -u alert-hub -f`
 - 서비스 재시작 시 Quick Tunnel URL이 바뀝니다. 고정 주소가 필요하면 Cloudflare 계정 + 도메인으로 Named Tunnel을 만들어 `cloudflared service install <token>` 하고 허브 설정의 자동 터널을 끄면 됩니다.
 
+### 🏛️ 열람실 좌석이 클라우드에서 안 보일 때 (집 PC 릴레이)
+`library.uos.ac.kr`은 클라우드/해외 IP의 좌석 API 호출을 `/error/session`으로 차단합니다. VM 허브에서 열람실만 안 보이면 집 PC에서 좌석을 읽어 허브로 밀어 넣으세요.
+1. 허브 관제 탭 → 호스트 패널 → 허브 설정의 **📚 열람실 푸시 키** 복사
+2. 집 PC 프로젝트 폴더에 `tools/pusher_config.json` 생성: `{"hub": "http://VM외부IP:8000", "key": "lib_…"}`
+   (VM 방화벽에서 tcp:8000 허용 + 고정 외부 IP 예약 권장. 터널 URL을 써도 되지만 재시작 시 바뀜)
+3. `run_library_pusher.bat` 실행 → 20초마다 좌석을 허브로 전송, 열람실 탭에 "🏠 집 PC 릴레이" 표시로 나타남
+
 ### 📱 모바일 UI
 같은 주소를 스마트폰으로 열면 하단 탭바 · 카드형 결과 목록 · 바텀시트 설정 화면으로 자동 전환됩니다. Safari/Chrome의 **"홈 화면에 추가"**로 앱처럼 설치할 수 있습니다 (PWA 매니페스트 포함).
 

@@ -124,6 +124,7 @@ class HubSettings:
         "notify_webhook": "",          # 터널 URL 변경 알림용 디스코드 웹훅 (비우면 호스트 프로필 엔진 웹훅 사용)
         "notify_on_tunnel_url": True,  # 터널 URL 발급/변경 시 디스코드로 새 주소 전송
         "last_tunnel_url": "",         # 마지막으로 알린 터널 URL (변경 감지용)
+        "library_push_key": "",        # 집 PC 열람실 푸시 스크립트용 키 (도서관 서버가 클라우드 IP를 차단할 때)
     }
 
     def __init__(self, path):
@@ -139,6 +140,9 @@ class HubSettings:
             changed = True
         if not data.get("created_at"):
             data["created_at"] = now_iso()
+            changed = True
+        if not data.get("library_push_key"):
+            data["library_push_key"] = "lib_" + secrets.token_hex(12)
             changed = True
         for k, v in self.DEFAULTS.items():
             if k not in data:
@@ -492,6 +496,33 @@ def save_favorites(uid, favs):
 
 
 # =====================================================================
+# 3-2. 열람실 스냅샷 (집 PC 푸시) — 도서관 서버가 클라우드 IP를 차단할 때의 우회 경로
+# =====================================================================
+LIBRARY_SNAPSHOT = {"rooms": [], "received_at": 0.0, "source": ""}
+LIBRARY_SNAPSHOT_MAX_AGE = 15 * 60   # 15분 지나면 오래된 것으로 표시
+
+
+def normalize_room(r):
+    """허브 형식 / uos-library-alert(/api/rooms) 형식 모두 수용"""
+    tot = int(r.get("total_seat", r.get("total", 0)) or 0)
+    use = int(r.get("use_seat", r.get("use", 0)) or 0)
+    rem = int(r.get("remain_seat", r.get("remain", 0)) or 0)
+    rate = r.get("occupancy_rate", r.get("rate"))
+    if rate is None:
+        rate = round(use / tot * 100, 1) if tot > 0 else 0
+    return {
+        "lib_code": r.get("lib_code", ""),
+        "lib_name": r.get("lib_name", ""),
+        "room_name": r.get("room_name", r.get("name", "")),
+        "total_seat": tot, "use_seat": use, "remain_seat": rem, "occupancy_rate": rate,
+    }
+
+
+def library_snapshot_age():
+    return int(time.time() - LIBRARY_SNAPSHOT["received_at"]) if LIBRARY_SNAPSHOT["received_at"] else None
+
+
+# =====================================================================
 # 4. Cloudflare 터널 관리자
 # =====================================================================
 class TunnelManager:
@@ -763,7 +794,7 @@ class AlertHubHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Hub-Token")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Hub-Token, X-Push-Key")
         self.end_headers()
 
     def log_message(self, format, *args):
@@ -959,7 +990,17 @@ class AlertHubHandler(BaseHTTPRequestHandler):
         # ---- UOS Campus ----
         if path == "/api/campus/library":
             rooms = eng.campus.fetch_library_seats()
-            self.send_json({"rooms": rooms, "errors": getattr(eng.campus, "last_library_errors", []), "fetched_at": now_iso()})
+            errors = getattr(eng.campus, "last_library_errors", [])
+            out = {"rooms": rooms, "errors": errors, "fetched_at": now_iso(), "source": "direct"}
+            if not rooms and LIBRARY_SNAPSHOT["rooms"]:
+                age = library_snapshot_age()
+                out.update({
+                    "rooms": LIBRARY_SNAPSHOT["rooms"], "source": "relay",
+                    "relay_from": LIBRARY_SNAPSHOT["source"], "relay_age_sec": age,
+                    "relay_stale": age is not None and age > LIBRARY_SNAPSHOT_MAX_AGE,
+                    "fetched_at": datetime.fromtimestamp(LIBRARY_SNAPSHOT["received_at"]).strftime("%Y-%m-%d %H:%M:%S"),
+                })
+            self.send_json(out)
             return
         if path == "/api/campus/notices":
             refresh = qs.get("refresh", ["0"])[0] == "1"
@@ -1004,6 +1045,22 @@ class AlertHubHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path
         body = self.read_body()
+
+        # 0. 집 PC 열람실 푸시 (전용 키 인증)
+        if path == "/api/campus/library/push":
+            key = (self.headers.get("X-Push-Key") or body.get("push_key") or "").strip()
+            if not key or not hmac.compare_digest(key, SETTINGS.get("library_push_key") or ""):
+                self.send_json({"success": False, "message": "푸시 키가 올바르지 않습니다."}, status=401)
+                return
+            rooms = body.get("rooms")
+            if not isinstance(rooms, list):
+                self.send_json({"success": False, "message": "rooms 배열이 필요합니다."})
+                return
+            LIBRARY_SNAPSHOT["rooms"] = [normalize_room(r) for r in rooms if isinstance(r, dict)][:60]
+            LIBRARY_SNAPSHOT["received_at"] = time.time()
+            LIBRARY_SNAPSHOT["source"] = str(body.get("source") or "home-pc")[:40]
+            self.send_json({"success": True, "message": f"열람실 {len(LIBRARY_SNAPSHOT['rooms'])}개 수신", "received_at": now_iso()})
+            return
 
         # 1. 인증
         if path.startswith("/api/auth/"):
@@ -1309,6 +1366,8 @@ class AlertHubHandler(BaseHTTPRequestHandler):
                 },
                 "settings": SETTINGS.public(),
                 "admin_key": SETTINGS.get("admin_key"),
+                "library_push_key": SETTINGS.get("library_push_key"),
+                "library_snapshot": {"rooms": len(LIBRARY_SNAPSHOT["rooms"]), "age_sec": library_snapshot_age(), "source": LIBRARY_SNAPSHOT["source"]},
                 "tunnel": TUNNEL.status(),
                 "users": users_out,
             })

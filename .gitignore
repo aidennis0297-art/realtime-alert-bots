@@ -1,6 +1,7 @@
 # Secret configs
 # 사용자 프로필/설정/관리자 키 (hub_server.py 런타임 데이터)
 data/
+tools/pusher_config.json
 **/config.json
 config.json
 *config*.json

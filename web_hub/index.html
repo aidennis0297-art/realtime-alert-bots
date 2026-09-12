@@ -1733,6 +1733,18 @@
             <button class="btn btn-secondary btn-sm" onclick="regenerateAdminKey()">♻️ 재발급</button>
           </div>
           <div style="font-size: 11.5px; color: var(--text-dim); margin-top: 8px;">관리자 키는 <code>data/hub_settings.json</code>에 저장되며 서버 콘솔에도 출력됩니다. 외부에 노출되지 않게 관리하세요.</div>
+
+          <div class="form-label" style="margin: 16px 0 6px;">📚 열람실 푸시 키 (집 PC 릴레이용)</div>
+          <div class="admin-key-box">
+            <code id="pushKeyText">••••••••</code>
+            <button class="btn btn-secondary btn-sm" onclick="togglePushKey()">👁️ 보기</button>
+            <button class="btn btn-secondary btn-sm" onclick="copyText(adminState.library_push_key || '', '푸시 키')">📋 복사</button>
+            <span id="pushSnapshotInfo" class="badge badge-secondary">수신 데이터 없음</span>
+          </div>
+          <div style="font-size: 11.5px; color: var(--text-dim); margin-top: 8px; line-height: 1.6;">
+            도서관 서버가 클라우드 IP를 차단할 때 사용합니다. 집 PC에서 <code>tools/pusher_config.json</code>에
+            <code>{"hub": "http://VM주소:8000", "key": "위 키"}</code>를 넣고 <code>run_library_pusher.bat</code>을 실행하면 20초마다 좌석을 이 허브로 보냅니다.
+          </div>
         </div>
       </div>
     </section>
@@ -1802,6 +1814,13 @@
       if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
     }
     function fmtDate(v) { return v ? v.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : ''; }
+    function fmtAgo(sec) {
+      if (sec === null || sec === undefined) return '-';
+      sec = parseInt(sec);
+      if (sec < 60) return `${sec}초 전`;
+      if (sec < 3600) return `${Math.floor(sec / 60)}분 전`;
+      return `${Math.floor(sec / 3600)}시간 ${Math.floor((sec % 3600) / 60)}분 전`;
+    }
     function fmtUptime(sec) {
       sec = parseInt(sec || 0);
       const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60);
@@ -2657,8 +2676,12 @@
         const errors = data.errors || [];
         campusLoaded.library = true;
         const allBlocked = errors.length > 0 && errors.every(e => /IP 차단/.test(e.error));
-        const errHtml = allBlocked
-          ? `<div style="grid-column: 1 / -1; font-size: 12.5px; color: #fbbf24; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: var(--radius-sm); padding: 10px 12px; line-height: 1.6;">🚫 <b>도서관 서버가 이 허브 서버의 IP(클라우드)를 차단</b>하고 있어 열람실 좌석을 가져올 수 없습니다.<br><span style="color: var(--text-muted);">열람실 좌석은 국내 PC에서 허브를 실행할 때만 조회됩니다. 다른 알리미(버스·열차·영화·항공·수강·공지)는 영향 없습니다.</span></div>`
+        const viaRelay = data.source === 'relay';
+        const relayHtml = viaRelay
+          ? `<div style="grid-column: 1 / -1; font-size: 12px; color: ${data.relay_stale ? '#fbbf24' : '#93c5fd'}; background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.25); border-radius: var(--radius-sm); padding: 8px 12px;">🏠 집 PC(${esc(data.relay_from || '')})에서 릴레이된 데이터 · ${fmtAgo(data.relay_age_sec)} 수신${data.relay_stale ? ' — <b>오래됨</b>: 집 PC의 run_library_pusher.bat 이 꺼져 있는지 확인하세요' : ''}</div>`
+          : '';
+        const errHtml = viaRelay ? relayHtml : allBlocked
+          ? `<div style="grid-column: 1 / -1; font-size: 12.5px; color: #fbbf24; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: var(--radius-sm); padding: 10px 12px; line-height: 1.6;">🚫 <b>도서관 서버가 이 허브 서버의 IP(클라우드)를 차단</b>하고 있어 열람실 좌석을 가져올 수 없습니다.<br><span style="color: var(--text-muted);">우회: 집 PC에서 <code>run_library_pusher.bat</code>을 실행하면 PC가 읽은 좌석을 이 허브로 보내 여기 표시됩니다 (푸시 키는 호스트 패널 &gt; 허브 설정). 다른 알리미는 영향 없습니다.</span></div>`
           : errors.length
             ? `<div style="grid-column: 1 / -1; font-size: 12px; color: #fbbf24; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: var(--radius-sm); padding: 8px 12px;">⚠️ 일부 도서관 조회 실패 — ${errors.map(e => `<b>${esc(e.lib)}</b>: ${esc(e.error)}`).join(' / ')}</div>`
             : '';
@@ -3175,6 +3198,7 @@
         renderAdminUsers(d.users);
         fillAdminSettings(d.settings);
         renderAdminKey();
+        renderPushKey();
         if (manual) toast('호스트 패널을 갱신했습니다.', 'info', 1500);
       } catch (e) { if (manual) toast(e.message, 'error'); }
     }
@@ -3361,6 +3385,18 @@
       el.textContent = adminKeyVisible ? (adminState.admin_key || '') : '••••-••••-••••';
     }
     function toggleAdminKey() { adminKeyVisible = !adminKeyVisible; renderAdminKey(); }
+    let pushKeyVisible = false;
+    function renderPushKey() {
+      const el = document.getElementById('pushKeyText');
+      if (el) el.textContent = pushKeyVisible ? (adminState.library_push_key || '') : '••••••••';
+      const snap = adminState.library_snapshot || {};
+      const info = document.getElementById('pushSnapshotInfo');
+      if (info) {
+        if (snap.rooms) { info.className = `badge ${snap.age_sec > 900 ? 'badge-warning' : 'badge-success'}`; info.textContent = `${snap.rooms}개 열람실 · ${fmtAgo(snap.age_sec)} (${snap.source || ''})`; }
+        else { info.className = 'badge badge-secondary'; info.textContent = '수신 데이터 없음'; }
+      }
+    }
+    function togglePushKey() { pushKeyVisible = !pushKeyVisible; renderPushKey(); }
     async function regenerateAdminKey() {
       if (!confirm('관리자 키를 재발급하면 기존 키로는 더 이상 호스트 로그인이 되지 않습니다. 계속할까요?')) return;
       try { const d = await apiPost('/api/admin/regenerate_key'); adminState.admin_key = d.admin_key; adminKeyVisible = true; renderAdminKey(); toastResult(d); }
