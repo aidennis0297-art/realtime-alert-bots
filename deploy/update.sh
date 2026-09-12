@@ -6,15 +6,18 @@ APP_DIR="${APP_DIR:-/opt/realtime-alert-bots}"
 APP_USER="${APP_USER:-hub}"
 git -c safe.directory="$APP_DIR" -C "$APP_DIR" pull --ff-only
 
-# (선택) NOTIFY_WEBHOOK=https://discord.com/api/webhooks/... 환경변수가 있으면 터널 주소 알림 웹훅으로 저장
-if [[ -n "${NOTIFY_WEBHOOK:-}" ]]; then
+# (선택) 터널 주소 알림용 디스코드 웹훅: 첫 번째 인자 또는 NOTIFY_WEBHOOK 환경변수
+#   sudo bash update.sh https://discord.com/api/webhooks/...
+NOTIFY_WEBHOOK="${1:-${NOTIFY_WEBHOOK:-}}"
+if [[ -n "$NOTIFY_WEBHOOK" ]]; then
+  echo "==> 터널 주소 알림 웹훅 저장"
   python3 - "$APP_DIR/data/hub_settings.json" "$NOTIFY_WEBHOOK" <<'PY'
 import json, sys, os
 p, hook = sys.argv[1], sys.argv[2]
 d = json.load(open(p)) if os.path.exists(p) else {}
 d["notify_webhook"] = hook; d["notify_on_tunnel_url"] = True
 json.dump(d, open(p, "w"), ensure_ascii=False, indent=2)
-print("notify_webhook 저장됨")
+print("    notify_webhook 저장됨:", hook[:45] + "...")
 PY
 fi
 chown -R "$APP_USER":"$APP_USER" "$APP_DIR"

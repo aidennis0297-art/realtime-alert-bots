@@ -296,6 +296,27 @@ USERS = UserStore()
 # =====================================================================
 # 3. 사용자별 감시 엔진 묶음
 # =====================================================================
+WEBHOOK_RE = re.compile(r"^https://(?:ptb\.|canary\.)?discord(?:app)?\.com/api/webhooks/\d+/[\w-]+$")
+
+
+def is_valid_webhook(url):
+    return bool(url) and bool(WEBHOOK_RE.match(url.strip()))
+
+
+def sanitize_placeholders(key, cfg):
+    """config.example.json 에서 유래한 플레이스홀더 값을 비운다 (잘못된 웹훅으로 400 나는 것 방지)"""
+    disc = cfg.get("discord")
+    if isinstance(disc, dict):
+        hook = (disc.get("webhook_url") or "").strip()
+        if hook and not is_valid_webhook(hook):
+            disc["webhook_url"] = ""
+    if key == "uos":
+        if str(cfg.get("password", "")).strip().upper() in ("YOUR_PASSWORD", "PASSWORD"):
+            cfg["password"] = ""
+        if str(cfg.get("student_id", "")).strip() == "2024000000":
+            cfg["student_id"] = ""
+
+
 class UserEngines:
     """한 사용자에게 귀속된 6개의 독립 감시 엔진"""
 
@@ -322,6 +343,7 @@ class UserEngines:
         # 원격(비호스트) 사용자는 호스트 PC의 브라우저/사운드/팝업 알림을 쓰지 않는다
         for k in ENGINE_KEYS:
             eng = getattr(self, k)
+            sanitize_placeholders(k, eng.config)
             if HEADLESS:
                 # 서버에 화면/스피커가 없으므로 (메모리상에서만) 로컬 알림을 끈다 — 디스코드 알림만 사용
                 eng.config["auto_open_browser"] = False
@@ -345,17 +367,13 @@ class UserEngines:
 
     def _seed_config(self, key, dest):
         """신규 설정 파일 시드
-        - 호스트: 기존 단일 사용자 시절 config.json → (없으면) config.example.json → 엔진 기본값
+        - 호스트: 기존 단일 사용자 시절 config.json → (없으면) 엔진 기본값
         - 일반 사용자: 엔진 기본값 (예시 학번/플레이스홀더 웹훅이 섞이지 않도록 example은 쓰지 않음)
         """
         if not self.is_host:
             return
-        src = None
-        if os.path.exists(LEGACY_CONFIGS.get(key, "")):
-            src = LEGACY_CONFIGS[key]
-        elif os.path.exists(EXAMPLE_CONFIGS.get(key, "")):
-            src = EXAMPLE_CONFIGS[key]
-        if src:
+        src = LEGACY_CONFIGS.get(key, "")
+        if src and os.path.exists(src):
             try:
                 shutil.copyfile(src, dest)
             except Exception:
@@ -561,25 +579,34 @@ TUNNEL = TunnelManager(BASE_DIR)
 def resolve_notify_webhook():
     """알림 웹훅: 허브 설정 → (없으면) 호스트 프로필의 6개 엔진 설정 중 첫 번째 웹훅"""
     hook = (SETTINGS.get("notify_webhook") or "").strip()
-    if hook.startswith("http"):
+    if is_valid_webhook(hook):
         return hook
     host_dir = USERS.user_dir(HOST_UID)
     for k in ENGINE_KEYS:
         cfg = read_json(os.path.join(host_dir, f"{k}.json"), {}) or {}
         h = ((cfg.get("discord") or {}).get("webhook_url") or "").strip()
-        if h.startswith("http"):
+        if is_valid_webhook(h):
             return h
     return ""
 
 
 def post_discord(webhook, payload):
     import urllib.request
+    import urllib.error
     req = urllib.request.Request(
         webhook, data=json.dumps(payload).encode("utf-8"),
         headers={"Content-Type": "application/json", "User-Agent": "AlertHub/2.1"}
     )
-    with urllib.request.urlopen(req, timeout=8) as resp:
-        return resp.status
+    try:
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            return resp.status
+    except urllib.error.HTTPError as e:
+        body = ""
+        try:
+            body = e.read().decode("utf-8", "replace")[:200]
+        except Exception:
+            pass
+        raise RuntimeError(f"HTTP {e.code} {body}".strip())
 
 
 def notify_tunnel_url(url, force=False):
@@ -593,7 +620,7 @@ def notify_tunnel_url(url, force=False):
         return False, "이미 알린 주소입니다."
     hook = resolve_notify_webhook()
     if not hook:
-        return False, "알림에 사용할 디스코드 웹훅이 없습니다. (허브 설정 또는 호스트 알리미 설정에 웹훅 입력)"
+        return False, "알림에 사용할 유효한 디스코드 웹훅이 없습니다. (호스트 패널 > 허브 설정 > 터널 주소 알림 웹훅 입력)"
     qr = "https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=" + url
     invite = (SETTINGS.get("invite_code") or "").strip()
     desc = f"**[접속하기]({url})**\n`{url}`"
