@@ -42,7 +42,7 @@ cloudflared --version
 echo "==> [3/5] 앱 배치: ${APP_DIR}"
 id -u "$APP_USER" >/dev/null 2>&1 || useradd --system --create-home --shell /usr/sbin/nologin "$APP_USER"
 if [[ -d "$APP_DIR/.git" ]]; then
-  git -C "$APP_DIR" pull --ff-only
+  git -c safe.directory="$APP_DIR" -C "$APP_DIR" pull --ff-only
 else
   git clone --depth 1 "$REPO_URL" "$APP_DIR"
 fi

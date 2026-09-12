@@ -4,7 +4,7 @@
 set -euo pipefail
 APP_DIR="${APP_DIR:-/opt/realtime-alert-bots}"
 APP_USER="${APP_USER:-hub}"
-git -C "$APP_DIR" pull --ff-only
+git -c safe.directory="$APP_DIR" -C "$APP_DIR" pull --ff-only
 
 # (선택) NOTIFY_WEBHOOK=https://discord.com/api/webhooks/... 환경변수가 있으면 터널 주소 알림 웹훅으로 저장
 if [[ -n "${NOTIFY_WEBHOOK:-}" ]]; then
