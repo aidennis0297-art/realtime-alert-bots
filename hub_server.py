@@ -623,16 +623,19 @@ def notify_tunnel_url(url, force=False):
         return False, "알림에 사용할 유효한 디스코드 웹훅이 없습니다. (호스트 패널 > 허브 설정 > 터널 주소 알림 웹훅 입력)"
     qr = "https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=" + url
     invite = (SETTINGS.get("invite_code") or "").strip()
-    desc = f"**[접속하기]({url})**\n`{url}`"
+    desc = "👉 **[여기를 눌러 접속]({0})**".format(url)
     if prev and prev != url:
-        desc += f"\n\n이전 주소: ~~{prev}~~ (더 이상 사용 불가)"
+        desc += "\n\n이전 주소: ~~{0}~~ (더 이상 사용 불가)".format(prev)
     if invite:
-        desc += f"\n초대코드: `{invite}`"
-    desc += "\n\n📱 QR을 폰 카메라로 스캔하면 바로 접속됩니다. 홈 화면에 추가해 앱처럼 쓰세요."
+        desc += "\n초대코드: `{0}`".format(invite)
+    desc += "\n\n📱 QR을 폰 카메라로 스캔해도 됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있어요."
+    head = "🌐 Alert Hub 외부 접속 주소가 " + ("갱신되었습니다" if prev else "발급되었습니다") + "!"
     payload = {
-        "content": "@everyone 🌐 Alert Hub 외부 접속 주소가 " + ("갱신되었습니다" if prev else "발급되었습니다") + "!",
+        # 본문에 원문 URL을 <...> 로 넣으면 클릭 가능한 링크가 되고, 디스코드 자동 미리보기(중복 임베드)는 억제된다
+        "content": "@everyone " + head + "\n<" + url + ">",
         "embeds": [{
-            "title": "⚡ Realtime Alert Hub — 접속 주소",
+            "title": "⚡ Realtime Alert Hub 접속하기",
+            "url": url,
             "description": desc,
             "color": 0x3B82F6,
             "image": {"url": qr},
