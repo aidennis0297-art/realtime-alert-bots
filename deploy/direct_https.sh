@@ -7,7 +7,8 @@
 #     2) 방화벽: VM 편집 → "HTTP 트래픽 허용" + "HTTPS 트래픽 허용" 체크 (tcp 80/443)
 #
 #   VM 에서:
-#     sudo bash /opt/realtime-alert-bots/deploy/direct_https.sh
+#     sudo bash /opt/realtime-alert-bots/deploy/direct_https.sh                     # → https://34-x-x-x.sslip.io
+#     sudo DOMAIN=uoshub.kro.kr bash /opt/realtime-alert-bots/deploy/direct_https.sh # → 내 도메인 (A 레코드 필요)
 #
 #   결과: https://<외부IP를 -로 연결>.sslip.io  (예: 34.64.1.2 → https://34-64-1-2.sslip.io)
 #         허브 설정의 자동 터널은 꺼지고, 이 고정 주소가 호스트 패널과 디스코드에 안내됩니다.
@@ -23,7 +24,16 @@ echo "==> [1/4] 외부 IP 확인"
 EXT_IP="${EXT_IP:-$(curl -fsS -H 'Metadata-Flavor: Google' http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip 2>/dev/null || true)}"
 if [[ -z "$EXT_IP" ]]; then EXT_IP=$(curl -fsS https://api.ipify.org || true); fi
 if [[ -z "$EXT_IP" ]]; then echo "[!] 외부 IP를 알 수 없습니다. EXT_IP=1.2.3.4 로 지정해 다시 실행하세요." >&2; exit 1; fi
-HOST_NAME="$(echo "$EXT_IP" | tr . -).sslip.io"
+# DOMAIN=내도메인 으로 지정하면 그 도메인을 사용 (예: uoshub.kro.kr, uoshub.duckdns.org — A 레코드를 이 VM IP로 미리 등록)
+if [[ -n "${DOMAIN:-}" ]]; then
+  HOST_NAME="$DOMAIN"
+  RESOLVED=$(getent hosts "$HOST_NAME" | awk '{print $1}' | head -1 || true)
+  if [[ "$RESOLVED" != "$EXT_IP" ]]; then
+    echo "[!] 경고: ${HOST_NAME} 이(가) ${RESOLVED:-'(미해석)'} 로 풀립니다. 이 VM IP(${EXT_IP})를 A 레코드로 등록했는지 확인하세요. (DNS 전파에 몇 분 걸릴 수 있음)"
+  fi
+else
+  HOST_NAME="$(echo "$EXT_IP" | tr . -).sslip.io"
+fi
 PUBLIC_URL="https://${HOST_NAME}"
 echo "    외부 IP: ${EXT_IP} → 주소: ${PUBLIC_URL}"
 
