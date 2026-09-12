@@ -384,10 +384,18 @@ class KobusMonitor:
             for b in available_buses:
                 bus_lines.append(f"⏰ **{b['depr_time']}** | {b['company']} ({b['bus_grade']}) ➔ 🎉 **{b['rem_seats']}석 잔여!**")
 
+            # 폰 푸시 미리보기에는 content 만 보이므로 핵심(시각·등급·잔여석)을 본문에도 넣는다
+            brief = " / ".join(f"{b['depr_time']} {b['bus_grade']} {b['rem_seats']}석" for b in available_buses[:5])
+            if len(available_buses) > 5:
+                brief += f" 외 {len(available_buses) - 5}편"
+
             for idx in range(1, count + 1):
                 now_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 payload = {
-                    "content": f"@everyone 🚨 [취소표 발생 {idx}/{count}] **{dep_name} ➔ {arr_name} 고속버스 빈자리가 나왔습니다!**",
+                    "content": (
+                        f"@everyone 🚨 [취소표 {idx}/{count}] **{dep_name} ➔ {arr_name} {formatted_date}**\n"
+                        f"🚌 {brief}"
+                    ),
                     "embeds": [{
                         "title": f"🎉 [{dep_name} ➔ {arr_name}] 빈자리 즉시 예매 가능!",
                         "description": (

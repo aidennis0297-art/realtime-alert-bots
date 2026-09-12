@@ -373,10 +373,18 @@ class UosSugangMonitor:
             for c in opened_courses:
                 lines.append(f"⏰ **[{c['code']}-{c['div']}] {c['name']}** ({c['prof']} 교수)\n➔ 신청/정원: **{c['cur']}/{c['limit']}명** (🎉 **{c['rem']}석 발생!**)")
 
+            # 폰 푸시 미리보기에는 content 만 보이므로 과목명·잔여석을 본문에도 넣는다
+            brief = " / ".join(f"{c['name']}({c['prof']}) {c['rem']}석" for c in opened_courses[:4])
+            if len(opened_courses) > 4:
+                brief += f" 외 {len(opened_courses) - 4}과목"
+
             for idx in range(1, count + 1):
                 now_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 payload = {
-                    "content": f"@everyone 🚨 [수강신청 빈자리 {idx}/{count}] **시립대 과목 잔여석이 나왔습니다! 지금 접속하세요!**",
+                    "content": (
+                        f"@everyone 🚨 [수강신청 빈자리 {idx}/{count}] **시립대 과목 잔여석 발생!**\n"
+                        f"🎓 {brief}"
+                    ),
                     "embeds": [{
                         "title": f"🚨 [빈자리 발생 {idx}/{count}] 서울시립대학교 수강신청",
                         "description": (
