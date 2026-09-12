@@ -5,6 +5,18 @@ set -euo pipefail
 APP_DIR="${APP_DIR:-/opt/realtime-alert-bots}"
 APP_USER="${APP_USER:-hub}"
 git -C "$APP_DIR" pull --ff-only
+
+# (선택) NOTIFY_WEBHOOK=https://discord.com/api/webhooks/... 환경변수가 있으면 터널 주소 알림 웹훅으로 저장
+if [[ -n "${NOTIFY_WEBHOOK:-}" ]]; then
+  python3 - "$APP_DIR/data/hub_settings.json" "$NOTIFY_WEBHOOK" <<'PY'
+import json, sys, os
+p, hook = sys.argv[1], sys.argv[2]
+d = json.load(open(p)) if os.path.exists(p) else {}
+d["notify_webhook"] = hook; d["notify_on_tunnel_url"] = True
+json.dump(d, open(p, "w"), ensure_ascii=False, indent=2)
+print("notify_webhook 저장됨")
+PY
+fi
 chown -R "$APP_USER":"$APP_USER" "$APP_DIR"
 systemctl restart alert-hub
 sleep 8

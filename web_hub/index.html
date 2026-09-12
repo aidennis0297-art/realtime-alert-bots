@@ -1587,9 +1587,10 @@
               <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
                 <button class="btn btn-secondary btn-sm" onclick="copyText(adminState.tunnel?.url || '', '외부 접속 URL')">📋 URL 복사</button>
                 <button class="btn btn-secondary btn-sm" onclick="shareTunnelUrl()">📤 공유</button>
+                <button class="btn btn-secondary btn-sm" onclick="tunnelNotify()">📣 디스코드로 주소 보내기</button>
               </div>
               <div style="font-size: 11.5px; color: var(--text-dim); margin-top: 10px; line-height: 1.5;">
-                • 무료 Quick Tunnel은 서버를 재시작할 때마다 URL이 바뀝니다. 새 URL을 사용자에게 다시 공유하세요.<br>
+                • 무료 Quick Tunnel은 서버를 재시작할 때마다 URL이 바뀝니다. 새 주소는 아래 설정의 <b>알림 웹훅</b>으로 디스코드에 자동 전송됩니다.<br>
                 • 외부 사용자는 [새 프로필]로 각자 등록해 본인 설정(노선·웹훅·학번)을 씁니다. 필요하면 아래에서 초대코드를 걸어두세요.
               </div>
               <details style="margin-top: 10px;">
@@ -1642,6 +1643,10 @@
             <div><div class="t-label">서버 시작 시 터널 자동 가동</div><div class="t-desc">run_hub.bat 실행만으로 외부 접속 URL이 생성됩니다.</div></div>
             <label class="switch"><input type="checkbox" id="adminAutoTunnel"><span class="sl"></span></label>
           </div>
+          <div class="toggle-row">
+            <div><div class="t-label">터널 주소 변경 시 디스코드 알림</div><div class="t-desc">서버 재시작 등으로 URL이 새로 발급되면 새 주소 + QR을 디스코드로 보냅니다.</div></div>
+            <label class="switch"><input type="checkbox" id="adminNotifyOn"><span class="sl"></span></label>
+          </div>
 
           <div class="grid-form" style="margin-top: 14px;">
             <div class="form-group">
@@ -1651,6 +1656,10 @@
             <div class="form-group">
               <label class="form-label">최대 사용자 수</label>
               <input type="number" id="adminMaxUsers" value="20" min="1" inputmode="numeric">
+            </div>
+            <div class="form-group span-2" style="grid-column: 1 / -1;">
+              <label class="form-label">터널 주소 알림 디스코드 웹훅 (비우면 호스트 알리미 설정의 웹훅 사용)</label>
+              <input type="text" id="adminNotifyHook" placeholder="https://discord.com/api/webhooks/..." inputmode="url">
             </div>
             <div class="form-group span-2" style="grid-column: 1 / -1;">
               <label class="form-label">신규 사용자 기본 디스코드 웹훅 (선택)</label>
@@ -3025,6 +3034,10 @@
         try { const t = await api('/api/admin/tunnel/status'); renderTunnel(t); if (t.url || !t.running || tries > 15) clearInterval(poll); } catch (e) { clearInterval(poll); }
       }, 1500);
     }
+    async function tunnelNotify() {
+      try { toastResult(await apiPost('/api/admin/tunnel/notify')); }
+      catch (e) { toast(e.message, 'error'); }
+    }
     async function tunnelStop() {
       try { const d = await apiPost('/api/admin/tunnel/stop'); toastResult(d); renderTunnel(d.tunnel); }
       catch (e) { toast(e.message, 'error'); }
@@ -3114,6 +3127,8 @@
       if (document.activeElement && document.activeElement.closest('#hostPanel .grid-form')) return; // 편집 중이면 덮어쓰지 않음
       document.getElementById('adminRegOpen').checked = !!s.registration_open;
       document.getElementById('adminAutoTunnel').checked = !!s.auto_tunnel;
+      document.getElementById('adminNotifyOn').checked = s.notify_on_tunnel_url !== false;
+      document.getElementById('adminNotifyHook').value = s.notify_webhook || '';
       document.getElementById('adminInvite').value = s.invite_code || '';
       document.getElementById('adminMaxUsers').value = s.max_users || 20;
       document.getElementById('adminDefaultHook').value = s.default_webhook || '';
@@ -3123,6 +3138,8 @@
         const d = await apiPost('/api/admin/settings', {
           registration_open: document.getElementById('adminRegOpen').checked,
           auto_tunnel: document.getElementById('adminAutoTunnel').checked,
+          notify_on_tunnel_url: document.getElementById('adminNotifyOn').checked,
+          notify_webhook: document.getElementById('adminNotifyHook').value.trim(),
           invite_code: document.getElementById('adminInvite').value.trim(),
           max_users: parseInt(document.getElementById('adminMaxUsers').value || '20'),
           default_webhook: document.getElementById('adminDefaultHook').value.trim()

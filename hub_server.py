@@ -121,6 +121,9 @@ class HubSettings:
         "max_users": 20,
         "default_webhook": "",         # 신규 사용자 엔진 설정에 기본 주입할 디스코드 웹훅
         "auto_tunnel": False,          # 서버 시작 시 Cloudflare 터널 자동 가동
+        "notify_webhook": "",          # 터널 URL 변경 알림용 디스코드 웹훅 (비우면 호스트 프로필 엔진 웹훅 사용)
+        "notify_on_tunnel_url": True,  # 터널 URL 발급/변경 시 디스코드로 새 주소 전송
+        "last_tunnel_url": "",         # 마지막으로 알린 터널 URL (변경 감지용)
     }
 
     def __init__(self, path):
@@ -462,6 +465,7 @@ class TunnelManager:
         self.started_at = None
         self.log_tail = []
         self.port = None
+        self.on_url = None          # URL 발급 시 호출되는 콜백 (디스코드 알림 등)
         self.exe = self._find_exe(base_dir)
 
     @staticmethod
@@ -511,6 +515,8 @@ class TunnelManager:
                     if m:
                         self.url = m.group(0)
                         print(f"🌐 [Tunnel] 외부 접속 URL: {self.url}")
+                        if self.on_url:
+                            threading.Thread(target=self.on_url, args=(self.url,), daemon=True).start()
         except Exception:
             pass
 
@@ -547,6 +553,76 @@ class TunnelManager:
 
 
 TUNNEL = TunnelManager(BASE_DIR)
+
+
+# =====================================================================
+# 4-1. 터널 URL 디스코드 알림
+# =====================================================================
+def resolve_notify_webhook():
+    """알림 웹훅: 허브 설정 → (없으면) 호스트 프로필의 6개 엔진 설정 중 첫 번째 웹훅"""
+    hook = (SETTINGS.get("notify_webhook") or "").strip()
+    if hook.startswith("http"):
+        return hook
+    host_dir = USERS.user_dir(HOST_UID)
+    for k in ENGINE_KEYS:
+        cfg = read_json(os.path.join(host_dir, f"{k}.json"), {}) or {}
+        h = ((cfg.get("discord") or {}).get("webhook_url") or "").strip()
+        if h.startswith("http"):
+            return h
+    return ""
+
+
+def post_discord(webhook, payload):
+    import urllib.request
+    req = urllib.request.Request(
+        webhook, data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json", "User-Agent": "AlertHub/2.1"}
+    )
+    with urllib.request.urlopen(req, timeout=8) as resp:
+        return resp.status
+
+
+def notify_tunnel_url(url, force=False):
+    """터널 URL이 새로 발급/변경되면 디스코드로 주소와 QR을 보낸다. force=True면 같은 주소여도 재전송."""
+    if not url:
+        return False, "가동 중인 터널 URL이 없습니다."
+    if not force and not SETTINGS.get("notify_on_tunnel_url"):
+        return False, "터널 URL 알림이 꺼져 있습니다."
+    prev = SETTINGS.get("last_tunnel_url") or ""
+    if not force and prev == url:
+        return False, "이미 알린 주소입니다."
+    hook = resolve_notify_webhook()
+    if not hook:
+        return False, "알림에 사용할 디스코드 웹훅이 없습니다. (허브 설정 또는 호스트 알리미 설정에 웹훅 입력)"
+    qr = "https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=" + url
+    invite = (SETTINGS.get("invite_code") or "").strip()
+    desc = f"**[접속하기]({url})**\n`{url}`"
+    if prev and prev != url:
+        desc += f"\n\n이전 주소: ~~{prev}~~ (더 이상 사용 불가)"
+    if invite:
+        desc += f"\n초대코드: `{invite}`"
+    desc += "\n\n📱 QR을 폰 카메라로 스캔하면 바로 접속됩니다. 홈 화면에 추가해 앱처럼 쓰세요."
+    payload = {
+        "content": "@everyone 🌐 Alert Hub 외부 접속 주소가 " + ("갱신되었습니다" if prev else "발급되었습니다") + "!",
+        "embeds": [{
+            "title": "⚡ Realtime Alert Hub — 접속 주소",
+            "description": desc,
+            "color": 0x3B82F6,
+            "image": {"url": qr},
+            "footer": {"text": f"서버 기동 {datetime.fromtimestamp(SERVER_STARTED_AT).strftime('%m/%d %H:%M')} · 주소는 서버 재시작 시 바뀌며 그때마다 다시 알려드립니다"}
+        }]
+    }
+    try:
+        post_discord(hook, payload)
+        SETTINGS.update({"last_tunnel_url": url})
+        print(f"📣 [Tunnel] 새 접속 주소를 디스코드로 알렸습니다: {url}")
+        return True, "디스코드로 접속 주소를 전송했습니다."
+    except Exception as e:
+        print(f"[!] [Tunnel] 디스코드 알림 실패: {e}")
+        return False, f"디스코드 전송 실패: {e}"
+
+
+TUNNEL.on_url = notify_tunnel_url
 
 
 # =====================================================================
@@ -1185,6 +1261,10 @@ class AlertHubHandler(BaseHTTPRequestHandler):
                 patch["default_webhook"] = str(body["default_webhook"]).strip()
             if "auto_tunnel" in body:
                 patch["auto_tunnel"] = bool(body["auto_tunnel"])
+            if "notify_webhook" in body:
+                patch["notify_webhook"] = str(body["notify_webhook"]).strip()
+            if "notify_on_tunnel_url" in body:
+                patch["notify_on_tunnel_url"] = bool(body["notify_on_tunnel_url"])
             SETTINGS.update(patch)
             self.send_json({"success": True, "message": "호스트 설정이 저장되었습니다.", "settings": SETTINGS.public()})
             return
@@ -1268,6 +1348,11 @@ class AlertHubHandler(BaseHTTPRequestHandler):
         if path == "/api/admin/tunnel/stop":
             ok, msg = TUNNEL.stop()
             self.send_json({"success": ok, "message": msg, "tunnel": TUNNEL.status()})
+            return
+
+        if path == "/api/admin/tunnel/notify":
+            ok, msg = notify_tunnel_url(TUNNEL.url if TUNNEL.is_running() else "", force=True)
+            self.send_json({"success": ok, "message": msg})
             return
 
         self.send_error(404, "Not Found")
