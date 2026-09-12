@@ -471,6 +471,27 @@ def stop_everything():
 
 
 # =====================================================================
+# 3-1. 즐겨찾기 (노선/극장/항공편 프리셋) — 사용자별 data/users/<uid>/favorites.json
+# =====================================================================
+FAV_SERVICES = {"kobus", "train", "cinema", "flight"}
+FAV_LOCK = threading.Lock()
+FAV_MAX = 40
+
+
+def fav_path(uid):
+    return os.path.join(USERS.user_dir(uid), "favorites.json")
+
+
+def load_favorites(uid):
+    data = read_json(fav_path(uid), []) or []
+    return [f for f in data if isinstance(f, dict) and f.get("service") in FAV_SERVICES]
+
+
+def save_favorites(uid, favs):
+    write_json(fav_path(uid), favs)
+
+
+# =====================================================================
 # 4. Cloudflare 터널 관리자
 # =====================================================================
 class TunnelManager:
@@ -843,6 +864,10 @@ class AlertHubHandler(BaseHTTPRequestHandler):
             return
         eng = get_engines(uid)
 
+        if path == "/api/favorites":
+            self.send_json({"favorites": load_favorites(uid)})
+            return
+
         if path == "/api/hub/status":
             st = eng.status()
             st["_user"] = {"uid": uid, "name": USERS.users[uid]["name"], "is_host": bool(USERS.users[uid].get("is_host"))}
@@ -933,7 +958,8 @@ class AlertHubHandler(BaseHTTPRequestHandler):
 
         # ---- UOS Campus ----
         if path == "/api/campus/library":
-            self.send_json({"rooms": eng.campus.fetch_library_seats()})
+            rooms = eng.campus.fetch_library_seats()
+            self.send_json({"rooms": rooms, "errors": getattr(eng.campus, "last_library_errors", []), "fetched_at": now_iso()})
             return
         if path == "/api/campus/notices":
             refresh = qs.get("refresh", ["0"])[0] == "1"
@@ -994,6 +1020,46 @@ class AlertHubHandler(BaseHTTPRequestHandler):
         if not uid:
             return
         eng = get_engines(uid)
+
+        # ---- 즐겨찾기 ----
+        if path == "/api/favorites/save":
+            svc = str(body.get("service", "")).strip()
+            name = str(body.get("name", "")).strip()[:40]
+            params = body.get("params") or {}
+            if svc not in FAV_SERVICES or not name or not isinstance(params, dict):
+                self.send_json({"success": False, "message": "저장할 서비스/이름/조건이 올바르지 않습니다."})
+                return
+            with FAV_LOCK:
+                favs = load_favorites(uid)
+                if len(favs) >= FAV_MAX:
+                    self.send_json({"success": False, "message": f"즐겨찾기는 최대 {FAV_MAX}개까지 저장할 수 있습니다."})
+                    return
+                fav = {"id": secrets.token_hex(4), "service": svc, "name": name, "params": params, "created_at": now_iso()}
+                favs.append(fav)
+                save_favorites(uid, favs)
+            self.send_json({"success": True, "message": f"⭐ '{name}' 즐겨찾기 저장", "favorite": fav, "favorites": favs})
+            return
+
+        if path == "/api/favorites/delete":
+            fid = str(body.get("id", "")).strip()
+            with FAV_LOCK:
+                favs = load_favorites(uid)
+                remain = [f for f in favs if f.get("id") != fid]
+                save_favorites(uid, remain)
+            self.send_json({"success": True, "message": "즐겨찾기를 삭제했습니다.", "favorites": remain})
+            return
+
+        if path == "/api/favorites/rename":
+            fid = str(body.get("id", "")).strip()
+            name = str(body.get("name", "")).strip()[:40]
+            with FAV_LOCK:
+                favs = load_favorites(uid)
+                for f in favs:
+                    if f.get("id") == fid and name:
+                        f["name"] = name
+                save_favorites(uid, favs)
+            self.send_json({"success": True, "message": "이름을 변경했습니다.", "favorites": favs})
+            return
 
         # ---- Master ----
         if path == "/api/hub/start_all":

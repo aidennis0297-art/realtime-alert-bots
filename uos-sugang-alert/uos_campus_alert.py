@@ -42,6 +42,7 @@ class UosCampusMonitor:
         self.config_path = config_path or os.path.join(CURRENT_DIR, "uos_campus_config.json")
         self.config = self.load_config()
         self.notices_cache = self.load_cached_notices()
+        self.last_library_errors = []
         self.is_running = False
         self.monitor_thread = None
         self.check_count = 0
@@ -115,6 +116,7 @@ class UosCampusMonitor:
             "M": "경영도서관"
         }
         rooms = []
+        self.last_library_errors = []
         for lib, lib_name in lib_map.items():
             url = "https://library.uos.ac.kr/seatStatus"
             data = f"lib={lib}&time={int(time.time() * 1000)}".encode("utf-8")
@@ -122,37 +124,53 @@ class UosCampusMonitor:
                 url,
                 data=data,
                 headers={
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
                     "Referer": "https://library.uos.ac.kr/",
+                    "Origin": "https://library.uos.ac.kr",
+                    "Accept": "application/json, text/javascript, */*; q=0.01",
                     "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
                     "X-Requested-With": "XMLHttpRequest"
                 }
             )
             try:
-                with urllib.request.urlopen(req, context=self.ctx, timeout=6) as res:
-                    raw = res.read().decode("utf-8")
+                raw = None
+                last_err = None
+                for attempt in range(2):  # 일시 오류 1회 재시도
+                    try:
+                        with urllib.request.urlopen(req, context=self.ctx, timeout=10) as res:
+                            raw = res.read().decode("utf-8")
+                        break
+                    except Exception as e:
+                        last_err = e
+                        time.sleep(1)
+                if raw is None:
+                    raise last_err
+                try:
                     d = json.loads(raw)
-                    items = d.get("seatStatus", {}).get("root", {}).get("item", [])
-                    if isinstance(items, dict):
-                        items = [items]
-                    for item in items:
-                        if not isinstance(item, dict):
-                            continue
-                        r_name = item.get("room_name", "")
-                        tot = int(item.get("total_seat", 0))
-                        use = int(item.get("use_seat", 0))
-                        rem = int(item.get("remain_seat", 0))
-                        rate = round((use / tot * 100), 1) if tot > 0 else 0
-                        rooms.append({
-                            "lib_code": lib,
-                            "lib_name": lib_name,
-                            "room_name": r_name,
-                            "total_seat": tot,
-                            "use_seat": use,
-                            "remain_seat": rem,
-                            "occupancy_rate": rate
-                        })
+                except Exception:
+                    raise RuntimeError(f"JSON 아님 (HTTP 본문 앞부분: {raw[:80]!r})")
+                items = d.get("seatStatus", {}).get("root", {}).get("item", [])
+                if isinstance(items, dict):
+                    items = [items]
+                for item in items:
+                    if not isinstance(item, dict):
+                        continue
+                    r_name = item.get("room_name", "")
+                    tot = int(item.get("total_seat", 0))
+                    use = int(item.get("use_seat", 0))
+                    rem = int(item.get("remain_seat", 0))
+                    rate = round((use / tot * 100), 1) if tot > 0 else 0
+                    rooms.append({
+                        "lib_code": lib,
+                        "lib_name": lib_name,
+                        "room_name": r_name,
+                        "total_seat": tot,
+                        "use_seat": use,
+                        "remain_seat": rem,
+                        "occupancy_rate": rate
+                    })
             except Exception as e:
+                self.last_library_errors.append({"lib": lib_name, "error": str(e)[:160]})
                 self.log(f"[{lib_name}] 좌석 조회 오류: {e}")
         return rooms
 

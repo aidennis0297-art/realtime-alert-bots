@@ -358,6 +358,44 @@
       color: #fff;
     }
 
+    /* ---------- Favorites ---------- */
+    .fav-bar {
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      margin-bottom: 14px; padding: 8px 10px;
+      background: rgba(251, 191, 36, 0.05);
+      border: 1px dashed rgba(251, 191, 36, 0.35);
+      border-radius: var(--radius-md);
+      min-width: 0; max-width: 100%;
+    }
+    .fav-label { font-size: 12px; font-weight: 700; color: #fbbf24; white-space: nowrap; margin-right: 2px; }
+    .fav-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.4);
+      color: #fde68a; padding: 5px 6px 5px 11px; border-radius: 9999px;
+      font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
+      transition: all 0.15s ease; max-width: 260px;
+    }
+    .fav-chip:hover { background: rgba(251, 191, 36, 0.25); color: #fff; }
+    .fav-chip .fav-name { overflow: hidden; text-overflow: ellipsis; }
+    .fav-chip .fav-x {
+      width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11px; color: var(--text-dim); background: rgba(0,0,0,0.25); flex-shrink: 0;
+    }
+    .fav-chip .fav-x:hover { background: var(--accent-rose); color: #fff; }
+    .fav-add {
+      background: transparent; border: 1px solid var(--border-color); color: var(--text-muted);
+      padding: 5px 11px; border-radius: 9999px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
+    }
+    .fav-add:hover { color: var(--text-main); border-color: var(--border-light); }
+    .fav-empty { font-size: 12px; color: var(--text-dim); }
+    @media (max-width: 900px) {
+      .fav-bar { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding: 8px; }
+      .fav-bar::-webkit-scrollbar { display: none; }
+      .fav-chip { flex-shrink: 0; padding: 7px 8px 7px 12px; font-size: 12.5px; }
+      .fav-add { flex-shrink: 0; padding: 7px 12px; }
+      .fav-empty { white-space: nowrap; }
+    }
+
     /* Brand toggle (cinema) */
     .brand-toggle-bar {
       display: flex; gap: 4px;
@@ -979,6 +1017,11 @@
             <button class="btn btn-secondary" onclick="openSettings('kobus')"><span>⚙️ 알림 설정</span></button>
           </div>
         </div>
+        <div class="fav-bar" id="favBar-kobus">
+          <span class="fav-label">⭐ 즐겨찾기</span>
+          <span class="fav-empty">아직 없음 — 조건을 잡고 [＋ 저장]</span>
+          <button class="fav-add" onclick="saveFavorite('kobus')">＋ 현재 조건 저장</button>
+        </div>
 
         <div class="region-pair">
           <div>
@@ -1066,6 +1109,11 @@
             <button id="trainToggleBtn" class="btn btn-success" onclick="trainToggle()"><span>▶️ 감시 시작</span></button>
             <button class="btn btn-secondary" onclick="openSettings('train')"><span>⚙️ 알림 설정</span></button>
           </div>
+        </div>
+        <div class="fav-bar" id="favBar-train">
+          <span class="fav-label">⭐ 즐겨찾기</span>
+          <span class="fav-empty">아직 없음 — 조건을 잡고 [＋ 저장]</span>
+          <button class="fav-add" onclick="saveFavorite('train')">＋ 현재 조건 저장</button>
         </div>
 
         <div class="region-pair">
@@ -1155,6 +1203,11 @@
             <button class="btn btn-secondary" onclick="openSettings('cinema')"><span>⚙️ 알림 설정</span></button>
           </div>
         </div>
+        <div class="fav-bar" id="favBar-cinema">
+          <span class="fav-label">⭐ 즐겨찾기</span>
+          <span class="fav-empty">아직 없음 — 조건을 잡고 [＋ 저장]</span>
+          <button class="fav-add" onclick="saveFavorite('cinema')">＋ 현재 조건 저장</button>
+        </div>
 
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
           <div class="brand-toggle-bar" id="cinemaBrandBar">
@@ -1224,6 +1277,11 @@
             <button id="flightToggleBtn" class="btn btn-success" onclick="flightToggle()"><span>▶️ 감시 시작</span></button>
             <button class="btn btn-secondary" onclick="openSettings('flight')"><span>⚙️ 알림 설정</span></button>
           </div>
+        </div>
+        <div class="fav-bar" id="favBar-flight">
+          <span class="fav-label">⭐ 즐겨찾기</span>
+          <span class="fav-empty">아직 없음 — 조건을 잡고 [＋ 저장]</span>
+          <button class="fav-add" onclick="saveFavorite('flight')">＋ 현재 조건 저장</button>
         </div>
 
         <div class="form-label" style="margin-bottom: 6px;">인기 특가 노선 바로가기</div>
@@ -1980,7 +2038,7 @@
       try { saved = localStorage.getItem('hub_tab') || 'tab-kobus'; } catch (e) {}
       switchTab(document.getElementById(saved) ? saved : 'tab-kobus');
       startStatusPolling();
-      await Promise.allSettled([loadKobusInitial(), loadTrainInitial(), loadCinemaInitial(), loadFlightInitial(), loadUosInitial()]);
+      await Promise.allSettled([loadKobusInitial(), loadTrainInitial(), loadCinemaInitial(), loadFlightInitial(), loadUosInitial(), loadFavorites()]);
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -2596,9 +2654,14 @@
       try {
         const data = await api('/api/campus/library');
         const rooms = data.rooms || [];
+        const errors = data.errors || [];
         campusLoaded.library = true;
-        if (rooms.length === 0) { grid.innerHTML = '<div style="color: var(--text-dim); padding: 20px;">조회된 열람실이 없습니다.</div>'; return; }
-        grid.innerHTML = rooms.map(r => {
+        const errHtml = errors.length
+          ? `<div style="grid-column: 1 / -1; font-size: 12px; color: #fbbf24; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: var(--radius-sm); padding: 8px 12px;">⚠️ 일부 도서관 조회 실패 — ${errors.map(e => `<b>${esc(e.lib)}</b>: ${esc(e.error)}`).join(' / ')}<br><span style="color: var(--text-dim);">서버가 해외/클라우드 IP면 도서관 서버가 차단할 수 있습니다.</span></div>`
+          : '';
+        const stamp = `<div style="grid-column: 1 / -1; font-size: 11.5px; color: var(--text-dim); text-align: right;">기준 ${esc(data.fetched_at || '')} · 중앙/건축/경영도서관 ${rooms.length}개 열람실</div>`;
+        if (rooms.length === 0) { grid.innerHTML = errHtml + '<div style="color: var(--text-dim); padding: 20px;">조회된 열람실이 없습니다.</div>'; return; }
+        grid.innerHTML = errHtml + rooms.map(r => {
           let badge = 'badge-success', txt = '여유';
           if (r.occupancy_rate >= 80) { badge = 'badge-danger'; txt = '혼잡'; }
           else if (r.occupancy_rate >= 50) { badge = 'badge-warning'; txt = '보통'; }
@@ -2609,7 +2672,7 @@
               <div class="status-card-val" style="color: ${r.remain_seat > 0 ? '#34d399' : '#fb7185'};">잔여 ${r.remain_seat}석</div>
               <div class="status-card-desc">사용 ${r.use_seat}석 / 전체 ${r.total_seat}석</div>
             </div>`;
-        }).join('');
+        }).join('') + stamp;
       } catch (e) {
         grid.innerHTML = `<div style="color: var(--accent-rose); padding: 20px;">좌석 로드 실패: ${esc(e.message)}</div>`;
       }
@@ -2699,6 +2762,148 @@
         </tr>`).join('');
     }
     const filterNoticesDebounced = debounce(filterNotices, 150);
+
+    // =====================================================================
+    // 9-1. 즐겨찾기 (노선/극장/항공편 프리셋) — 프로필별 서버 저장
+    // =====================================================================
+    let favorites = [];
+
+    async function loadFavorites() {
+      try { const d = await api('/api/favorites'); favorites = d.favorites || []; }
+      catch (e) { favorites = []; }
+      ['kobus', 'train', 'cinema', 'flight'].forEach(renderFavBar);
+    }
+
+    function renderFavBar(svc) {
+      const bar = document.getElementById(`favBar-${svc}`);
+      if (!bar) return;
+      const list = favorites.filter(f => f.service === svc);
+      bar.innerHTML = `<span class="fav-label">⭐ 즐겨찾기</span>` +
+        (list.length ? list.map(f => `
+          <span class="fav-chip" title="${esc(favSummary(f))}" onclick="applyFavorite('${esc(f.id)}')">
+            <span class="fav-name">${esc(f.name)}</span>
+            <span class="fav-x" title="삭제" onclick="event.stopPropagation(); deleteFavorite('${esc(f.id)}', '${esc(f.name)}')">✕</span>
+          </span>`).join('') : `<span class="fav-empty">아직 없음 — 조건을 잡고 [＋ 저장]</span>`) +
+        `<button class="fav-add" onclick="saveFavorite('${svc}')">＋ 현재 조건 저장</button>`;
+    }
+
+    function favSummary(f) {
+      const p = f.params || {};
+      if (f.service === 'kobus' || f.service === 'train') return `${p.dep_name} ➔ ${p.arr_name} · ${p.min_time}~${p.max_time} · ${p.min_seats}석+`;
+      if (f.service === 'cinema') return `${p.brand} ${p.theater_name}${p.movie ? ' · ' + p.movie : ''}${p.special_only ? ' · 특별관만' : ''}`;
+      if (f.service === 'flight') return `${p.dep} ➔ ${p.arr} · ≤${Number(p.max_price || 0).toLocaleString()}원${p.golden ? ' · 황금시간' : ''}${p.promo ? ' · 특가만' : ''}`;
+      return '';
+    }
+
+    function collectFavParams(svc) {
+      const txt = sel => sel.options[sel.selectedIndex]?.text || '';
+      if (svc === 'kobus') {
+        const dep = document.getElementById('kobusDepSelect'), arr = document.getElementById('kobusArrSelect');
+        return { dep: dep.value, dep_name: txt(dep), arr: arr.value, arr_name: txt(arr),
+          date: document.getElementById('kobusDateInput').value, min_time: document.getElementById('kobusMinTime').value,
+          max_time: document.getElementById('kobusMaxTime').value, min_seats: document.getElementById('kobusMinSeats').value };
+      }
+      if (svc === 'train') {
+        const dep = document.getElementById('trainDepSelect'), arr = document.getElementById('trainArrSelect');
+        return { dep: dep.value, dep_name: txt(dep), arr: arr.value, arr_name: txt(arr),
+          date: document.getElementById('trainDateInput').value, min_time: document.getElementById('trainMinTime').value,
+          max_time: document.getElementById('trainMaxTime').value, min_seats: document.getElementById('trainMinSeats').value };
+      }
+      if (svc === 'cinema') {
+        const th = document.getElementById('cinemaBranchSelect');
+        return { brand: globalCinemaData.currentBrand || 'CGV', theater: th.value, theater_name: txt(th),
+          date: document.getElementById('cinemaDateInput').value, movie: document.getElementById('cinemaMovieFilter').value,
+          special_only: document.getElementById('cinemaSpecialOnly').checked, min_seats: document.getElementById('cinemaMinSeats').value };
+      }
+      if (svc === 'flight') {
+        return { dep: document.getElementById('flightDepSelect').value, arr: document.getElementById('flightArrSelect').value,
+          date: document.getElementById('flightDateInput').value, max_price: document.getElementById('flightMaxPriceInput').value,
+          golden: document.getElementById('flightGoldenSelect').value === '1', promo: document.getElementById('flightPromoSelect').value === '1',
+          min_seats: document.getElementById('flightMinSeats').value };
+      }
+      return {};
+    }
+
+    function defaultFavName(svc, p) {
+      if (svc === 'kobus' || svc === 'train') return `${p.dep_name} ➔ ${p.arr_name} ${(p.min_time || '').slice(0, 5)}~`;
+      if (svc === 'cinema') return `${p.theater_name}${p.movie ? ' · ' + p.movie : ''}`;
+      if (svc === 'flight') {
+        const nm = id => { const el = document.getElementById(id); return (el.options[el.selectedIndex]?.text || el.value).replace(/\s*\(.*\)$/, ''); };
+        return `${nm('flightDepSelect')} ➔ ${nm('flightArrSelect')} ≤${Math.round((p.max_price || 0) / 10000)}만`;
+      }
+      return '즐겨찾기';
+    }
+
+    async function saveFavorite(svc) {
+      const params = collectFavParams(svc);
+      const name = prompt('즐겨찾기 이름', defaultFavName(svc, params));
+      if (name === null) return;
+      try {
+        const d = await apiPost('/api/favorites/save', { service: svc, name: name.trim() || defaultFavName(svc, params), params });
+        toastResult(d);
+        if (d.favorites) { favorites = d.favorites; renderFavBar(svc); }
+      } catch (e) { toast(e.message, 'error'); }
+    }
+
+    async function deleteFavorite(id, name) {
+      if (!confirm(`'${name}' 즐겨찾기를 삭제할까요?`)) return;
+      try {
+        const d = await apiPost('/api/favorites/delete', { id });
+        favorites = d.favorites || [];
+        ['kobus', 'train', 'cinema', 'flight'].forEach(renderFavBar);
+        toast('즐겨찾기를 삭제했습니다.', 'info', 1500);
+      } catch (e) { toast(e.message, 'error'); }
+    }
+
+    // 저장된 날짜가 이미 지났으면 오늘로 (노선 즐겨찾기는 날짜보다 구간이 핵심)
+    function favDate(saved) {
+      const today = new Date().toISOString().slice(0, 10);
+      return (saved && saved >= today) ? saved : today;
+    }
+
+    async function applyFavorite(id) {
+      const f = favorites.find(x => x.id === id);
+      if (!f) return;
+      const p = f.params || {};
+      const setVal = (elId, v) => { const el = document.getElementById(elId); if (el && v !== undefined && v !== null && v !== '') el.value = v; };
+      try {
+        if (f.service === 'kobus') {
+          kobusFilterDepRegion('전체');
+          setVal('kobusDepSelect', p.dep);
+          curKobusArrRegion = '전체';
+          document.querySelectorAll('#kobusArrRegionBar .region-chip').forEach(c => c.classList.toggle('active', c.innerText.includes('전체')));
+          kobusOnDepChanged();
+          setVal('kobusArrSelect', p.arr); updateKobusBanner();
+          setVal('kobusDateInput', favDate(p.date)); setVal('kobusMinTime', p.min_time); setVal('kobusMaxTime', p.max_time); setVal('kobusMinSeats', p.min_seats);
+          kobusSearch();
+        } else if (f.service === 'train') {
+          trainFilterDepRegion('전체'); setVal('trainDepSelect', p.dep);
+          trainFilterArrRegion('전체'); setVal('trainArrSelect', p.arr); updateTrainBanner();
+          setVal('trainDateInput', favDate(p.date)); setVal('trainMinTime', p.min_time); setVal('trainMaxTime', p.max_time); setVal('trainMinSeats', p.min_seats);
+          trainSearch();
+        } else if (f.service === 'cinema') {
+          if ((globalCinemaData.currentBrand || 'CGV') !== (p.brand || 'CGV')) await cinemaSelectBrand(p.brand || 'CGV', false);
+          const region = Object.keys(globalCinemaData.theaters || {}).find(r => (globalCinemaData.theaters[r] || []).some(t => t.code === p.theater));
+          if (region) cinemaFilterRegion(region, false);
+          setVal('cinemaBranchSelect', p.theater); cinemaOnBranchChanged();
+          setVal('cinemaDateInput', favDate(p.date));
+          document.getElementById('cinemaMovieFilter').value = p.movie || '';
+          document.getElementById('cinemaSpecialOnly').checked = p.special_only !== false;
+          setVal('cinemaMinSeats', p.min_seats);
+          cinemaSearch();
+        } else if (f.service === 'flight') {
+          setVal('flightDepSelect', p.dep); setVal('flightArrSelect', p.arr);
+          setVal('flightDateInput', favDate(p.date)); setVal('flightMaxPriceInput', p.max_price);
+          document.getElementById('flightGoldenSelect').value = p.golden ? '1' : '0';
+          document.getElementById('flightPromoSelect').value = p.promo ? '1' : '0';
+          setVal('flightMinSeats', p.min_seats);
+          document.querySelectorAll('#flightPresetBar .region-chip').forEach(c => c.classList.remove('active'));
+          flightUpdateBanner();
+          flightSearch();
+        }
+        toast(`⭐ ${f.name} 적용`, 'info', 1500);
+      } catch (e) { toast('즐겨찾기 적용 실패: ' + e.message, 'error'); }
+    }
 
     // =====================================================================
     // 10. 마스터 컨트롤 · 상태 폴링
