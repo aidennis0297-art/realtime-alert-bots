@@ -458,12 +458,13 @@ class FlightMonitor:
                 self.lowest_flight = top
                 self.log(f"🎉🎉🎉 특가 항공권 감지! [{top['airline_name']} {top['flight_no']}] {top['dep_time']} ➔ {top['formatted_price']} (잔여 {top['seats_remain']}석)")
 
-                sys.stdout.write("\a")
-                sys.stdout.flush()
-                try:
-                    webbrowser.open(top["booking_url"])
-                except Exception:
-                    pass
+                if self.config.get("auto_open_browser", True):
+                    sys.stdout.write("\a")
+                    sys.stdout.flush()
+                    try:
+                        webbrowser.open(top["booking_url"])
+                    except Exception:
+                        pass
 
                 self.send_discord_burst(matched)
                 time.sleep(25)

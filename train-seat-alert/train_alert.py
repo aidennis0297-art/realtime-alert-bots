@@ -518,12 +518,13 @@ class TrainMonitor:
                     self.log(f"  ▶ [{v['trn_name']}] {v['dpt_time']} (일반: {v['general_seat']}, 특실: {v['special_seat']})")
 
                 # 사운드 및 브라우저
-                sys.stdout.write("\a")
-                sys.stdout.flush()
-                try:
-                    webbrowser.open("https://etk.srail.kr")
-                except Exception:
-                    pass
+                if self.config.get("auto_open_browser", True):
+                    sys.stdout.write("\a")
+                    sys.stdout.flush()
+                    try:
+                        webbrowser.open("https://etk.srail.kr")
+                    except Exception:
+                        pass
 
                 # 디스코드 3연타
                 self.send_discord_burst(vacant)

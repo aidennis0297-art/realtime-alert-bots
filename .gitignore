@@ -1,4 +1,6 @@
 # Secret configs
+# 사용자 프로필/설정/관리자 키 (hub_server.py 런타임 데이터)
+data/
 **/config.json
 config.json
 *config*.json
@@ -16,7 +18,6 @@ __pycache__/
 *.log
 
 # IDE & OS
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
+# Binaries & Tools
+cloudflared.exe
+*.exe

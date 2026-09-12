@@ -133,6 +133,44 @@ graph TD
 docker-compose up -d
 ```
 > 브라우저에서 `http://서버IP:8000`에 접속하여 원격으로 5대 알리미를 모두 관리할 수 있습니다.
+> `./data` 폴더가 볼륨으로 마운트되어 사용자 프로필/설정/관리자 키가 컨테이너 재시작 후에도 유지됩니다.
+
+---
+
+## 👥 멀티유저 & 호스트 관리 (Alert Hub 2.1)
+
+Cloudflare 터널 등으로 허브를 외부에 공개하면 **여러 사람이 각자 다른 노선·학번·디스코드 웹훅**을 써야 합니다. 2.1부터는 프로필 단위로 설정과 감시 엔진이 완전히 분리됩니다.
+
+```
+data/
+├── hub_settings.json         # 호스트 설정 (관리자 키, 등록 허용, 초대코드, 기본 웹훅, 자동 터널)
+└── users/<uid>/
+    ├── profile.json          # 프로필 (이름, PIN 해시)
+    └── kobus.json, train.json, cinema.json, flight.json, uos.json, campus.json
+```
+
+| 역할 | 로그인 방법 | 할 수 있는 것 |
+|---|---|---|
+| **호스트** (서버 실행자) | 서버 콘솔에 출력되는 **관리자 키** (`data/hub_settings.json`) | 모든 기능 + 🛠️ 호스트 패널: 사용자 목록·가동 엔진 현황, 사용자 설정 열람/웹훅 일괄 지정/PIN 재설정/삭제, 신규 등록 허용·초대코드·최대 인원·기본 웹훅, **Cloudflare 터널 시작/중지 + 외부 URL·QR 코드** |
+| **일반 사용자** | [새 프로필]에서 이름 + PIN 등록 → 이후 [로그인] | 본인 프로필의 6대 알리미 설정·감시 (다른 사용자와 완전 분리, 호스트 PC의 브라우저/사운드 알림은 사용하지 않음) |
+
+- 기존 단일 사용자 시절의 `*/config.json`은 첫 실행 시 **호스트 프로필로 자동 마이그레이션**됩니다.
+- 인증은 쿠키 + `X-Hub-Token` 헤더 둘 다 지원합니다. [내 프로필]에서 토큰을 복사해 iOS 단축어/스크립트에서 `curl -H "X-Hub-Token: ..." http://.../api/hub/status` 처럼 직접 API를 호출할 수 있습니다.
+- 외부 공개는 호스트 패널 **[▶️ 터널 시작]** 한 번으로 끝납니다 (프로젝트 폴더의 `cloudflared.exe` 사용). 표시되는 `https://xxxx.trycloudflare.com` 주소나 QR을 공유하세요. 무료 Quick Tunnel은 재시작 시 URL이 바뀝니다.
+
+### ☁️ GCP Compute Engine 24/7 배포 (권장: 서울 리전 e2-micro)
+1. VM 만들기 — 리전 **asia-northeast3 (서울)**, 머신 **e2-micro** 또는 e2-small, OS Debian 12/13. 방화벽 포트는 열 필요 없음(Cloudflare 터널 사용).
+2. VM의 **SSH(브라우저 창)** 에서 한 줄 실행:
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/aidennis0297-art/realtime-alert-bots/main/deploy/gcp_setup.sh | sudo bash
+   ```
+   python3·cloudflared 설치 → `/opt/realtime-alert-bots` clone → `alert-hub` systemd 서비스 등록 → 터널 자동 가동 후 **관리자 키와 외부 접속 URL**을 출력합니다.
+3. 출력된 `https://xxxx.trycloudflare.com` 으로 접속 → [호스트] 탭에 관리자 키 입력 → 각 알리미 ⚙️ 설정에서 웹훅/계정 입력.
+- 코드 업데이트: `sudo bash /opt/realtime-alert-bots/deploy/update.sh` · 로그: `journalctl -u alert-hub -f`
+- 서비스 재시작 시 Quick Tunnel URL이 바뀝니다. 고정 주소가 필요하면 Cloudflare 계정 + 도메인으로 Named Tunnel을 만들어 `cloudflared service install <token>` 하고 허브 설정의 자동 터널을 끄면 됩니다.
+
+### 📱 모바일 UI
+같은 주소를 스마트폰으로 열면 하단 탭바 · 카드형 결과 목록 · 바텀시트 설정 화면으로 자동 전환됩니다. Safari/Chrome의 **"홈 화면에 추가"**로 앱처럼 설치할 수 있습니다 (PWA 매니페스트 포함).
 
 ---
 

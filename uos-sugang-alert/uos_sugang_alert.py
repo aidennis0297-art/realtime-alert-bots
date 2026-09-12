@@ -390,7 +390,7 @@ class UosSugangMonitor:
                     }]
                 }
                 self.post_discord(payload)
-                if winsound:
+                if winsound and self.config.get("sound_alert", True):
                     try:
                         winsound.Beep(1500, 200)
                     except Exception:

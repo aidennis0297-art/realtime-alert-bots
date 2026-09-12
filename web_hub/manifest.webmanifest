@@ -1,0 +1,16 @@
+{
+  "name": "Realtime Alert Hub",
+  "short_name": "Alert Hub",
+  "description": "고속버스·KTX/SRT·영화관·항공권·수강신청·캠퍼스 실시간 알리미 통합 관제",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0f19",
+  "theme_color": "#0b0f19",
+  "lang": "ko",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

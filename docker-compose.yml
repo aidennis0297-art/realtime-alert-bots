@@ -10,3 +10,5 @@ services:
     environment:
       - TZ=Asia/Seoul
       - DOCKER_CONTAINER=1
+    volumes:
+      - ./data:/app/data   # 사용자 프로필 · 설정 · 관리자 키 영속화

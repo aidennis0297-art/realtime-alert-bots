@@ -364,12 +364,13 @@ class CinemaMonitor:
                 for v in vacant[:3]:
                     self.log(f"  ▶ [{v['movie_name']}] {v['start_time']} ({v['hall_name']}): 잔여 {v['rest_seats']}석")
 
-                sys.stdout.write("\a")
-                sys.stdout.flush()
-                try:
-                    webbrowser.open(booking_url)
-                except Exception:
-                    pass
+                if self.config.get("auto_open_browser", True):
+                    sys.stdout.write("\a")
+                    sys.stdout.flush()
+                    try:
+                        webbrowser.open(booking_url)
+                    except Exception:
+                        pass
 
                 self.send_discord_burst(vacant)
                 time.sleep(20)
