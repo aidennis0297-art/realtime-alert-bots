@@ -169,6 +169,12 @@ data/
 - 코드 업데이트: `sudo bash /opt/realtime-alert-bots/deploy/update.sh` · 로그: `journalctl -u alert-hub -f`
 - 서비스 재시작 시 Quick Tunnel URL이 바뀝니다. 고정 주소가 필요하면 Cloudflare 계정 + 도메인으로 Named Tunnel을 만들어 `cloudflared service install <token>` 하고 허브 설정의 자동 터널을 끄면 됩니다.
 
+### 🔒 Cloudflare 없이 고정 HTTPS 주소로 쓰기 (권장)
+터널 URL이 재시작마다 바뀌는 게 번거로우면, 도메인 없이 **`https://<IP>.sslip.io`** 고정 주소를 씁니다.
+1. GCP 콘솔: VM 외부 IP를 **고정으로 예약**, VM 편집에서 **HTTP/HTTPS 트래픽 허용** 체크
+2. VM: `sudo bash /opt/realtime-alert-bots/deploy/direct_https.sh` → Caddy 설치 + 인증서 자동 발급 + 허브의 자동 터널 OFF
+3. 출력된 `https://34-x-x-x.sslip.io`가 고정 주소입니다 (디스코드에도 한 번 안내됨). 집 PC 열람실 푸시도 이 주소를 쓰면 됩니다.
+
 ### 🏛️ 열람실 좌석이 클라우드에서 안 보일 때 (집 PC 릴레이)
 `library.uos.ac.kr`은 클라우드/해외 IP의 좌석 API 호출을 `/error/session`으로 차단합니다. VM 허브에서 열람실만 안 보이면 집 PC에서 좌석을 읽어 허브로 밀어 넣으세요.
 1. 허브 관제 탭 → 호스트 패널 → 허브 설정의 **📚 열람실 푸시 키** 복사

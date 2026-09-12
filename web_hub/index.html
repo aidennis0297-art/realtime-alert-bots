@@ -1643,7 +1643,7 @@
               <div class="form-label" style="margin-bottom: 6px;">외부 접속 URL (스마트폰 · 다른 PC에서 접속)</div>
               <div class="tunnel-url" id="tunnelUrlBox"><span style="color: var(--text-dim);">터널이 가동되면 https://xxxx.trycloudflare.com 주소가 표시됩니다.</span></div>
               <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
-                <button class="btn btn-secondary btn-sm" onclick="copyText(adminState.tunnel?.url || '', '외부 접속 URL')">📋 URL 복사</button>
+                <button class="btn btn-secondary btn-sm" onclick="copyText(adminState.tunnel?.url || adminState.settings?.public_url || '', '외부 접속 URL')">📋 URL 복사</button>
                 <button class="btn btn-secondary btn-sm" onclick="shareTunnelUrl()">📤 공유</button>
                 <button class="btn btn-secondary btn-sm" onclick="tunnelNotify()">📣 디스코드로 주소 보내기</button>
               </div>
@@ -1714,6 +1714,10 @@
             <div class="form-group">
               <label class="form-label">최대 사용자 수</label>
               <input type="number" id="adminMaxUsers" value="20" min="1" inputmode="numeric">
+            </div>
+            <div class="form-group span-2" style="grid-column: 1 / -1;">
+              <label class="form-label">고정 공개 주소 (Cloudflare 터널 대신 · deploy/direct_https.sh 가 자동 입력)</label>
+              <input type="text" id="adminPublicUrl" placeholder="https://34-1-2-3.sslip.io" inputmode="url">
             </div>
             <div class="form-group span-2" style="grid-column: 1 / -1;">
               <label class="form-label">터널 주소 알림 디스코드 웹훅 (비우면 호스트 알리미 설정의 웹훅 사용)</label>
@@ -3225,6 +3229,12 @@
         box.innerHTML = `<a href="${esc(t.url)}" target="_blank" rel="noopener">${esc(t.url)}</a> <span class="badge badge-success">${fmtUptime(t.uptime_sec)}</span>`;
       } else if (t.running) {
         box.innerHTML = `<span class="spin">⏳</span> <span style="color: var(--text-muted);">터널 연결 중... 몇 초 후 URL이 표시됩니다.</span>`;
+      } else if (adminState.settings?.public_url) {
+        const pu = adminState.settings.public_url;
+        box.innerHTML = `<a href="${esc(pu)}" target="_blank" rel="noopener">${esc(pu)}</a> <span class="badge badge-success">고정 주소</span>`;
+        document.getElementById('tunnelLog').textContent = '(고정 주소 사용 중 — 터널 미사용)';
+        renderQr(pu);
+        return;
       } else if (!t.available) {
         box.innerHTML = `<span style="color: #fb7185;">cloudflared.exe 를 찾을 수 없습니다. 프로젝트 폴더에 두거나 PATH에 등록하세요.</span>`;
       } else {
@@ -3247,7 +3257,7 @@
     }
 
     async function shareTunnelUrl() {
-      const url = adminState.tunnel?.url;
+      const url = adminState.tunnel?.url || adminState.settings?.public_url;
       if (!url) { toast('가동 중인 터널 URL이 없습니다.', 'warn'); return; }
       const text = `Alert Hub 접속 주소: ${url}\n[새 프로필]로 등록 후 본인 설정을 사용하세요.${adminState.settings?.invite_code ? `\n초대코드: ${adminState.settings.invite_code}` : ''}`;
       if (navigator.share) { try { await navigator.share({ title: 'Alert Hub', text, url }); return; } catch (e) {} }
@@ -3361,6 +3371,7 @@
       document.getElementById('adminAutoTunnel').checked = !!s.auto_tunnel;
       document.getElementById('adminNotifyOn').checked = s.notify_on_tunnel_url !== false;
       document.getElementById('adminNotifyHook').value = s.notify_webhook || '';
+      document.getElementById('adminPublicUrl').value = s.public_url || '';
       document.getElementById('adminInvite').value = s.invite_code || '';
       document.getElementById('adminMaxUsers').value = s.max_users || 20;
       document.getElementById('adminDefaultHook').value = s.default_webhook || '';
@@ -3372,6 +3383,7 @@
           auto_tunnel: document.getElementById('adminAutoTunnel').checked,
           notify_on_tunnel_url: document.getElementById('adminNotifyOn').checked,
           notify_webhook: document.getElementById('adminNotifyHook').value.trim(),
+          public_url: document.getElementById('adminPublicUrl').value.trim(),
           invite_code: document.getElementById('adminInvite').value.trim(),
           max_users: parseInt(document.getElementById('adminMaxUsers').value || '20'),
           default_webhook: document.getElementById('adminDefaultHook').value.trim()

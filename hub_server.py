@@ -125,6 +125,7 @@ class HubSettings:
         "notify_on_tunnel_url": True,  # 터널 URL 발급/변경 시 디스코드로 새 주소 전송
         "last_tunnel_url": "",         # 마지막으로 알린 터널 URL (변경 감지용)
         "library_push_key": "",        # 집 PC 열람실 푸시 스크립트용 키 (도서관 서버가 클라우드 IP를 차단할 때)
+        "public_url": "",              # 고정 공개 주소 (deploy/direct_https.sh 로 설정; 터널 대신 사용)
     }
 
     def __init__(self, path):
@@ -679,7 +680,8 @@ def notify_tunnel_url(url, force=False):
     if invite:
         desc += "\n초대코드: `{0}`".format(invite)
     desc += "\n\n📱 QR을 폰 카메라로 스캔해도 됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있어요."
-    head = "🌐 Alert Hub 외부 접속 주소가 " + ("갱신되었습니다" if prev else "발급되었습니다") + "!"
+    fixed = ".trycloudflare.com" not in url
+    head = "🌐 Alert Hub 접속 주소" + (" (고정)" if fixed else "") + ": " + ("갱신되었습니다" if prev and not fixed else "안내드립니다") + "!"
     payload = {
         # 본문에 원문 URL을 <...> 로 넣으면 클릭 가능한 링크가 되고, 디스코드 자동 미리보기(중복 임베드)는 억제된다
         "content": "@everyone " + head + "\n<" + url + ">",
@@ -689,7 +691,7 @@ def notify_tunnel_url(url, force=False):
             "description": desc,
             "color": 0x3B82F6,
             "image": {"url": qr},
-            "footer": {"text": f"서버 기동 {datetime.fromtimestamp(SERVER_STARTED_AT).strftime('%m/%d %H:%M')} · 주소는 서버 재시작 시 바뀌며 그때마다 다시 알려드립니다"}
+            "footer": {"text": f"서버 기동 {datetime.fromtimestamp(SERVER_STARTED_AT).strftime('%m/%d %H:%M')} · " + ("고정 주소라 재시작해도 바뀌지 않습니다" if fixed else "주소는 서버 재시작 시 바뀌며 그때마다 다시 알려드립니다")}
         }]
     }
     try:
@@ -1418,6 +1420,8 @@ class AlertHubHandler(BaseHTTPRequestHandler):
                 patch["notify_webhook"] = str(body["notify_webhook"]).strip()
             if "notify_on_tunnel_url" in body:
                 patch["notify_on_tunnel_url"] = bool(body["notify_on_tunnel_url"])
+            if "public_url" in body:
+                patch["public_url"] = str(body["public_url"]).strip().rstrip("/")
             SETTINGS.update(patch)
             self.send_json({"success": True, "message": "호스트 설정이 저장되었습니다.", "settings": SETTINGS.public()})
             return
@@ -1504,7 +1508,7 @@ class AlertHubHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/admin/tunnel/notify":
-            ok, msg = notify_tunnel_url(TUNNEL.url if TUNNEL.is_running() else "", force=True)
+            ok, msg = notify_tunnel_url(TUNNEL.url if TUNNEL.is_running() else (SETTINGS.get("public_url") or ""), force=True)
             self.send_json({"success": ok, "message": msg})
             return
 
@@ -1552,6 +1556,10 @@ def run_server(open_browser=True, port=None):
     if SETTINGS.get("auto_tunnel"):
         ok, msg = TUNNEL.start(port)
         print(f"🌐 [Tunnel] {msg}")
+    elif SETTINGS.get("public_url"):
+        print(f"🌐 고정 공개 주소: {SETTINGS.get('public_url')}")
+        if SETTINGS.get("last_tunnel_url") != SETTINGS.get("public_url"):
+            threading.Thread(target=notify_tunnel_url, args=(SETTINGS.get("public_url"),), kwargs={"force": True}, daemon=True).start()
 
     if open_browser:
         webbrowser.open(url)
